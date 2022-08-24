@@ -106,7 +106,7 @@ func (a *Aggregator) AddRecord(partitionKey string, hasPartitionKey bool, data [
 	pkeyFieldSize := protowire.SizeVarint(pKeyIdx) + fieldNumberSize
 	// Total size is byte size of data + pkey field + field number of parent proto
 
-	if a.getSize()+protowire.SizeBytes(dataFieldSize+pkeyFieldSize)+fieldNumberSize+pKeyAddedSize >= defaultMaximumRecordSize {
+	if a.getSize()+protowire.SizeBytes(dataFieldSize+pkeyFieldSize)+fieldNumberSize+pKeyAddedSize >= a.maximumRecordSize {
 		// Aggregate records, and return if error
 		entry, err = a.AggregateRecords()
 		if err != nil {
