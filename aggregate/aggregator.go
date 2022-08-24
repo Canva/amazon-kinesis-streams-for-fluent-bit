@@ -44,11 +44,12 @@ type Config struct {
 // NewAggregator create a new aggregator
 func NewAggregator(stringGen *util.RandomStringGenerator, cfg *Config) *Aggregator {
 	a := &Aggregator{
-		partitionKeys:    make(map[string]uint64, 0),
-		records:          make([]*Record, 0),
-		maxAggRecordSize: defaultMaxAggRecordSize,
-		aggSize:          initialAggRecordSize,
-		stringGen:        stringGen,
+		partitionKeys:     make(map[string]uint64, 0),
+		records:           make([]*Record, 0),
+		maximumRecordSize: defaultMaximumRecordSize,
+		maxAggRecordSize:  defaultMaxAggRecordSize,
+		aggSize:           initialAggRecordSize,
+		stringGen:         stringGen,
 	}
 
 	if cfg.MaximumRecordSize != nil {
