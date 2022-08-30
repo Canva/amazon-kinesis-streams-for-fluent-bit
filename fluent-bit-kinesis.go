@@ -330,7 +330,7 @@ func (enr *enricher) enrichRecord(r map[interface{}]interface{}) map[interface{}
 
 func init() {
 	ecsTaskDefinition := os.Getenv("ECS_TASK_DEFINITION")
-	re := regexp.MustCompile(`^(?<ecs_task_family>[^ ]*):(?<ecs_task_revision>[\d]+)$`)
+	re := regexp.MustCompile(`^(?P<ecs_task_family>[^ ]*):(?<ecs_task_revision>[\d]+)$`)
 	ecsTaskDefinitionParts := re.FindStringSubmatch(ecsTaskDefinition)
 	ecsTaskRevision, err := strconv.Atoi(ecsTaskDefinitionParts[re.SubexpIndex("ecs_task_revision")])
 	if err != nil {
