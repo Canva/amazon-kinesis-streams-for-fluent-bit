@@ -262,7 +262,12 @@ func unpackRecords(kinesisOutput *kinesis.OutputPlugin, data unsafe.Pointer, len
 			break
 		}
 		for k, v := range record {
-			fmt.Printf("$ %+v: %+v\n", k, string(v.([]byte)))
+			switch v.(type) {
+			case []byte:
+				fmt.Printf("$ %+v: %+v\n", k, string(v.([]byte)))
+			default:
+				fmt.Printf("$ %+v: %+v\n", k, v)
+			}
 		}
 		continue
 
