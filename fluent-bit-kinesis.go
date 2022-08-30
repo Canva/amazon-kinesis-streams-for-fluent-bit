@@ -263,6 +263,7 @@ func unpackRecords(kinesisOutput *kinesis.OutputPlugin, data unsafe.Pointer, len
 		}
 		for k, v := range record {
 			fmt.Printf("# %+v: %+v\n", k, v)
+			logrus.Infof("# %+v: %+v", k, v)
 		}
 		continue
 
