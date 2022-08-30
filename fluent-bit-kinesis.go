@@ -28,6 +28,10 @@ import (
 
 	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/kinesis"
 )
+import (
+	"os"
+	"regexp"
+)
 
 const (
 	// Kinesis API Limit https://docs.aws.amazon.com/sdk-for-go/api/service/kinesis/#Kinesis.PutRecords
@@ -261,6 +265,7 @@ func unpackRecords(kinesisOutput *kinesis.OutputPlugin, data unsafe.Pointer, len
 		if ret != 0 {
 			break
 		}
+		record = defaultEnricher.enrichRecord(record)
 		for k, v := range record {
 			switch v.(type) {
 			case []byte:
@@ -298,6 +303,47 @@ func unpackRecords(kinesisOutput *kinesis.OutputPlugin, data unsafe.Pointer, len
 	}
 
 	return records, count, output.FLB_OK
+}
+
+type enricher struct {
+	canvaAWSAccount string
+	canvaAppName    string
+	logGroup        string
+	ecsTaskFamily   string
+	ecsTaskRevision int
+}
+
+var defaultEnricher *enricher
+
+// enrichRecord modifies existing record.
+func (enr *enricher) enrichRecord(r map[interface{}]interface{}) map[interface{}]interface{} {
+	r["observedTimestamp"] = time.Now().UnixMilli()
+	r["cloud.account.id"] = enr.canvaAWSAccount
+	r["service.name"] = enr.canvaAppName
+	r["ecs_task_family"] = enr.ecsTaskFamily
+	r["ecs_task_revision"] = enr.ecsTaskRevision
+	r["aws.log.group.names"] = enr.logGroup
+	r["cloud.platform"] = "aws_ecs"
+	r["aws.ecs.launchtype"] = "EC2"
+	return r
+}
+
+func init() {
+	ecsTaskDefinition := os.Getenv("ECS_TASK_DEFINITION")
+	re := regexp.MustCompile(`^(?<ecs_task_family>[^ ]*):(?<ecs_task_revision>[\d]+)$`)
+	ecsTaskDefinitionParts := re.FindStringSubmatch(ecsTaskDefinition)
+	ecsTaskRevision, err := strconv.Atoi(ecsTaskDefinitionParts[re.SubexpIndex("ecs_task_revision")])
+	if err != nil {
+		logrus.Warnf("[kinesis] ecs_task_revision not found for ECS_TASK_DEFINITION=%s", ecsTaskDefinition)
+	}
+
+	defaultEnricher = &enricher{
+		canvaAWSAccount: os.Getenv("CANVA_AWS_ACCOUNT"),
+		canvaAppName:    os.Getenv("CANVA_APP_NAME"),
+		logGroup:        os.Getenv("LOG_GROUP"),
+		ecsTaskFamily:   ecsTaskDefinitionParts[re.SubexpIndex("ecs_task_family")],
+		ecsTaskRevision: ecsTaskRevision,
+	}
 }
 
 //export FLBPluginExit
