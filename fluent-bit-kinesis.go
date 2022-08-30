@@ -261,6 +261,10 @@ func unpackRecords(kinesisOutput *kinesis.OutputPlugin, data unsafe.Pointer, len
 		if ret != 0 {
 			break
 		}
+		for k, v := range record {
+			fmt.Printf("# %+v: %+v\n", k, v)
+		}
+		continue
 
 		switch tts := ts.(type) {
 		case output.FLBTime:
@@ -281,7 +285,7 @@ func unpackRecords(kinesisOutput *kinesis.OutputPlugin, data unsafe.Pointer, len
 		count++
 	}
 
-	if kinesisOutput.IsAggregate() {
+	if kinesisOutput.IsAggregate() && false {
 		retCode := kinesisOutput.FlushAggregatedRecords(&records)
 		if retCode != output.FLB_OK {
 			return nil, 0, retCode
