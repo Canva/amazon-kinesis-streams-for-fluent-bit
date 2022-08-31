@@ -264,6 +264,7 @@ func unpackRecords(kinesisOutput *kinesis.OutputPlugin, data unsafe.Pointer, len
 		}
 		record = enricher.EnrichRecord(record)
 		for k, v := range record {
+			fmt.Printf("Key %v Type %T\n", k, k)
 			switch v.(type) {
 			case []byte:
 				fmt.Printf("$ %+v: %+v\n", k, string(v.([]byte)))
