@@ -99,6 +99,9 @@ func newKinesisOutput(ctx unsafe.Pointer, pluginID int) (*kinesis.OutputPlugin, 
 	skipAggregationRecordSize := output.FLBPluginConfigKey(ctx, "skip_aggregation_record_size")
 	logrus.Infof("[kinesis %d] plugin parameter skip_aggregation_record_size = %q", pluginID, skipAggregationRecordSize)
 
+	enrichRecords := output.FLBPluginConfigKey(ctx, "enrich_records")
+	logrus.Infof("[kinesis %d] plugin parameter enrich_records = %q", pluginID, enrichRecords)
+
 	if stream == "" || region == "" {
 		return nil, fmt.Errorf("[kinesis %d] stream and region are required configuration parameters", pluginID)
 	}
@@ -189,6 +192,12 @@ func newKinesisOutput(ctx unsafe.Pointer, pluginID int) (*kinesis.OutputPlugin, 
 		}
 		skipAggregationRecordSizeInt = &intVal
 	}
+
+	enricherEnable := false
+	if strings.ToLower(enrichRecords) == "true" {
+		enricherEnable = true
+	}
+	enricher.Init(enricherEnable)
 
 	return kinesis.NewOutputPlugin(region, stream, dataKeys, partitionKey, roleARN, kinesisEndpoint, stsEndpoint, timeKey, timeKeyFmt, logKey, replaceDots, concurrencyInt, concurrencyRetriesInt, isAggregate, appendNL, comp, pluginID, httpRequestTimeoutDuration, aggregationMaximumRecordSizeInt, skipAggregationRecordSizeInt)
 }

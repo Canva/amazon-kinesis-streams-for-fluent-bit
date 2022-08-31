@@ -15,6 +15,7 @@ func EnrichRecord(r map[interface{}]interface{}, t time.Time) map[interface{}]in
 }
 
 type enricher struct {
+	enable          bool
 	canvaAWSAccount string
 	canvaAppName    string
 	logGroup        string
@@ -24,8 +25,13 @@ type enricher struct {
 
 var defaultEnricher *enricher
 
-// init will initialise defaultEnricher instance.
-func init() {
+// Init will initialise defaultEnricher instance.
+func Init(enable bool) {
+	if !enable {
+		defaultEnricher = new(enricher)
+		return
+	}
+
 	ecsTaskDefinition := os.Getenv("ECS_TASK_DEFINITION")
 	re := regexp.MustCompile(`^(?P<ecs_task_family>[^ ]*):(?P<ecs_task_revision>[\d]+)$`)
 	ecsTaskDefinitionParts := re.FindStringSubmatch(ecsTaskDefinition)
@@ -48,6 +54,7 @@ func init() {
 	}
 
 	defaultEnricher = &enricher{
+		enable:          true,
 		canvaAWSAccount: os.Getenv("CANVA_AWS_ACCOUNT"),
 		canvaAppName:    os.Getenv("CANVA_APP_NAME"),
 		logGroup:        os.Getenv("LOG_GROUP"),
@@ -58,6 +65,10 @@ func init() {
 
 // enrichRecord modifies existing record.
 func (enr *enricher) enrichRecord(r map[interface{}]interface{}, t time.Time) map[interface{}]interface{} {
+	if !enr.enable {
+		return r
+	}
+
 	resource := map[string]interface{}{
 		"cloud.account.id":      enr.canvaAWSAccount,
 		"service.name":          enr.canvaAppName,
