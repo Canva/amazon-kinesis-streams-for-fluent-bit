@@ -4,6 +4,7 @@ package compress
 import (
 	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/compress/gzip"
 	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/compress/noop"
+	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/compress/zstd"
 )
 
 // Format is the format of compression that happens.
@@ -13,6 +14,7 @@ type Format string
 const (
 	FormatNoop = Format("noop")
 	FormatGZip = Format("gzip")
+	FormatZSTD = Format("zstd")
 )
 
 // Config holds configurations need for creating a new Compress instance.
@@ -34,6 +36,8 @@ func New(conf *Config) (Compression, error) {
 		return noop.New(), nil
 	case FormatGZip:
 		return gzip.New(conf.Level)
+	case FormatZSTD:
+		return zstd.New(conf.Level)
 	}
 }
 

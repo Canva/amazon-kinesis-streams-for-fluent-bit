@@ -204,8 +204,10 @@ func newKinesisOutput(ctx unsafe.Pointer, pluginID int) (*kinesis.OutputPlugin, 
 		aggregationCompressionFormat = compress.FormatNoop
 	case string(compress.FormatGZip):
 		aggregationCompressionFormat = compress.FormatGZip
+	case string(compress.FormatZSTD):
+		aggregationCompressionFormat = compress.FormatZSTD
 	default:
-		return nil, fmt.Errorf("[kinesis %d] Invalid 'aggregation_compression' value %q specified, must be 'noop', 'gzip', or undefined", pluginID, aggregationCompression)
+		return nil, fmt.Errorf("[kinesis %d] Invalid 'aggregation_compression' value %q specified, must be 'noop', 'gzip', 'zstd', or undefined", pluginID, aggregationCompression)
 	}
 	if aggregationCompressionLevel != "" {
 		aggregationCompressionLevelInt, err = parseNonNegativeConfig("aggregation_compression_level", aggregationCompressionLevel, pluginID)

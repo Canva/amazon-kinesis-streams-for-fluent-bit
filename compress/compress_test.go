@@ -4,8 +4,9 @@ import (
 	"reflect"
 	"testing"
 
-	internalGZip "github.com/canva/amazon-kinesis-streams-for-fluent-bit/compress/gzip"
+	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/compress/gzip"
 	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/compress/noop"
+	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/compress/zstd"
 )
 
 func IsType[T Compression](c Compression) bool {
@@ -38,9 +39,21 @@ func TestNew(t *testing.T) {
 			args{
 				&Config{
 					Format: "gzip",
+					Level:  1,
 				},
 			},
-			IsType[*internalGZip.GZip],
+			IsType[*gzip.GZip],
+			false,
+		},
+		{
+			"zstd",
+			args{
+				&Config{
+					Format: "zstd",
+					Level:  1,
+				},
+			},
+			IsType[*zstd.ZSTD],
 			false,
 		},
 	}
