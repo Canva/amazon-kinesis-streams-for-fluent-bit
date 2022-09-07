@@ -1,6 +1,9 @@
 package compress
 
 import (
+	"fmt"
+	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -92,4 +95,165 @@ func TestCompress(t *testing.T) {
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("Noop.Compress() = %v, want %v", got, want)
 	}
+}
+
+func BenchmarkCompressions(b *testing.B) {
+	cbs := generateCompressionBenchmarks(b)
+	for _, cb := range cbs {
+		b.Run(cb.name, func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				cb.compression.Compress(cb.data)
+			}
+		})
+	}
+}
+
+func BenchmarkCompressionsAlwaysNew(b *testing.B) {
+	var c Compression
+	cbs := generateCompressionAlwaysNewBenchmarks(b)
+	for _, cb := range cbs {
+		b.Run(cb.name, func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				c, _ = New(cb.config)
+				c.Compress(cb.data)
+			}
+		})
+	}
+}
+
+type compressionBenchmark struct {
+	name        string
+	compression Compression
+	data        []byte
+}
+
+func generateCompressionBenchmarks(b *testing.B) []*compressionBenchmark {
+	payloads := generateCompressionPayloads(b)
+	type configTemplate struct {
+		format Format
+		levels []int
+	}
+	configTemplates := []*configTemplate{
+		{
+			FormatNoop,
+			[]int{0},
+		},
+		{
+			FormatGZip,
+			[]int{1, 2, 3, 4, 5, 6, 7, 8, 9},
+		},
+		{
+			FormatZSTD,
+			[]int{1, 2, 3, 4},
+		},
+	}
+
+	var totalLen int
+
+	for _, confTemp := range configTemplates {
+		totalLen += len(confTemp.levels)
+	}
+	totalLen *= len(payloads)
+
+	cbs := make([]*compressionBenchmark, totalLen)
+
+	var i int
+	for _, payload := range payloads {
+		for _, confTemp := range configTemplates {
+			for _, l := range confTemp.levels {
+				conf := &Config{
+					Format: confTemp.format,
+					Level:  l,
+				}
+				c, err := New(conf)
+				if err != nil {
+					b.Fatalf("New() failed for %+v: %v", conf, err)
+				}
+
+				// Warm up
+				c.Compress(payload)
+
+				cbs[i] = &compressionBenchmark{
+					fmt.Sprintf("%s_level_%d_len_%d", conf.Format, conf.Level, len(payload)),
+					c,
+					payload,
+				}
+				i++
+			}
+		}
+	}
+
+	return cbs
+}
+
+type compressionAlwaysNewBenchmark struct {
+	name   string
+	config *Config
+	data   []byte
+}
+
+func generateCompressionAlwaysNewBenchmarks(b *testing.B) []*compressionAlwaysNewBenchmark {
+	payloads := generateCompressionPayloads(b)
+	type configTemplate struct {
+		format Format
+		levels []int
+	}
+	configTemplates := []*configTemplate{
+		{
+			FormatNoop,
+			[]int{0},
+		},
+		{
+			FormatGZip,
+			[]int{1, 2, 3, 4, 5, 6, 7, 8, 9},
+		},
+		{
+			FormatZSTD,
+			[]int{1, 2, 3, 4},
+		},
+	}
+
+	var totalLen int
+
+	for _, confTemp := range configTemplates {
+		totalLen += len(confTemp.levels)
+	}
+	totalLen *= len(payloads)
+
+	cbs := make([]*compressionAlwaysNewBenchmark, totalLen)
+
+	var i int
+	for _, payload := range payloads {
+		for _, confTemp := range configTemplates {
+			for _, l := range confTemp.levels {
+				cbs[i] = &compressionAlwaysNewBenchmark{
+					fmt.Sprintf("%s_level_%d_len_%d", confTemp.format, l, len(payload)),
+					&Config{
+						Format: confTemp.format,
+						Level:  l,
+					},
+					payload,
+				}
+				i++
+			}
+		}
+	}
+
+	return cbs
+}
+
+func generateCompressionPayloads(b *testing.B) [][]byte {
+	var sizes = [...]int{100, 1_000, 10_000, 150_000}
+	filePath := filepath.Clean(filepath.Join("testdata", "linux_2k.log"))
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		b.Fatalf("unable to read the file %s: %v", filePath, err)
+	}
+
+	payloads := make([][]byte, len(sizes))
+	for i, size := range sizes {
+		payloads[i] = content[:size]
+	}
+
+	return payloads
 }
