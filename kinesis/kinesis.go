@@ -36,7 +36,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/kinesis"
-	"github.com/fluent/fluent-bit-go/output"
 	fluentbit "github.com/fluent/fluent-bit-go/output"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/lestrrat-go/strftime"
@@ -347,7 +346,7 @@ func (outputPlugin *OutputPlugin) Flush(records *[]*kinesis.PutRecordsRequestEnt
 		logrus.Errorf("[kinesis %d] %v\n", outputPlugin.PluginID, err)
 	}
 
-	if retCode == output.FLB_OK {
+	if retCode == fluentbit.FLB_OK {
 		logrus.Debugf("[kinesis %d] Flushed %d logs\n", outputPlugin.PluginID, len(*records))
 	}
 
@@ -375,7 +374,7 @@ func (outputPlugin *OutputPlugin) FlushWithRetries(count int, records []*kinesis
 
 		logrus.Debugf("[kinesis %d] Sending (%d) records, currentRetries=(%d)", outputPlugin.PluginID, len(records), currentRetries)
 		retCode = outputPlugin.Flush(&records)
-		if retCode != output.FLB_RETRY {
+		if retCode != fluentbit.FLB_RETRY {
 			break
 		}
 		currentRetries = outputPlugin.addConcurrentRetries(1)
@@ -388,11 +387,11 @@ func (outputPlugin *OutputPlugin) FlushWithRetries(count int, records []*kinesis
 	}
 
 	switch retCode {
-	case output.FLB_ERROR:
+	case fluentbit.FLB_ERROR:
 		logrus.Errorf("[kinesis %d] Failed to send (%d) records with error", outputPlugin.PluginID, len(records))
-	case output.FLB_RETRY:
+	case fluentbit.FLB_RETRY:
 		logrus.Errorf("[kinesis %d] Failed to send (%d) records after retries %d", outputPlugin.PluginID, len(records), outputPlugin.concurrencyRetryLimit)
-	case output.FLB_OK:
+	case fluentbit.FLB_OK:
 		logrus.Debugf("[kinesis %d] Flushed %d records\n", outputPlugin.PluginID, count)
 	}
 }
@@ -405,18 +404,18 @@ func (outputPlugin *OutputPlugin) FlushConcurrent(count int, records []*kinesis.
 	runningGoRoutines := outputPlugin.getGoroutineCount()
 	if runningGoRoutines+1 > int32(outputPlugin.Concurrency) {
 		logrus.Infof("[kinesis %d] flush returning retry, concurrency limit reached (%d)\n", outputPlugin.PluginID, runningGoRoutines)
-		return output.FLB_RETRY
+		return fluentbit.FLB_RETRY
 	}
 
 	curRetries := outputPlugin.getConcurrentRetries()
 	if curRetries > 0 {
 		logrus.Infof("[kinesis %d] flush returning retry, kinesis retries in progress (%d)\n", outputPlugin.PluginID, curRetries)
-		return output.FLB_RETRY
+		return fluentbit.FLB_RETRY
 	}
 
 	go outputPlugin.FlushWithRetries(count, records)
 
-	return output.FLB_OK
+	return fluentbit.FLB_OK
 
 }
 
