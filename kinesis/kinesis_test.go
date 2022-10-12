@@ -9,6 +9,7 @@ import (
 	"sync"
 	"testing"
 	"time"
+	"unicode/utf8"
 
 	"github.com/aws/amazon-kinesis-firehose-for-fluent-bit/plugins"
 	"github.com/aws/aws-sdk-go/aws"
@@ -274,6 +275,10 @@ func FuzzAddRecordAndFlushAggregateZstd(f *testing.F) {
         f.Add(tc)  // Use f.Add to provide a seed corpus
 	}
 	f.Fuzz(func(t *testing.T, log string){
+		// ignore non utf data
+		if !utf8.ValidString(log) {
+			return
+		}
 		records := make([]*kinesis.PutRecordsRequestEntry, 0, 500)
 
 		record := map[interface{}]interface{}{
