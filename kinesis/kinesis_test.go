@@ -269,16 +269,23 @@ func FuzzAddRecordAndFlushAggregateZstd(f *testing.F) {
 		Format: compress.FormatZSTD,
 		Level:  1,
 	})
+		
+	// TODO move to deaggregator
+	var KplMagicHeader = fmt.Sprintf("%q", []byte("\xf3\x89\x9a\xc2"))
+	KplMagicLen := 4  // Length of magic header for KPL Aggregate Record checking.
+	DigestSize  := 16 // MD5 Message size for protobuf.
 
-	testcases := []interface{}{"2022.11.9 this is a test log", "!1234500000000000001231321321111"}
+	testcases := []interface{}{"2022.11.9 this is a test log", "1234500000000000001231321321111\nmultiple string"}
     for _, tc := range testcases {
         f.Add(tc)  // Use f.Add to provide a seed corpus
 	}
+
 	f.Fuzz(func(t *testing.T, log string){
 		// ignore non utf data
-		if !utf8.ValidString(log) {
+		if !utf8.ValidString(log) || len(log) > 10000 {
 			return
 		}
+
 		records := make([]*kinesis.PutRecordsRequestEntry, 0, 500)
 
 		record := map[interface{}]interface{}{
@@ -316,9 +323,6 @@ func FuzzAddRecordAndFlushAggregateZstd(f *testing.F) {
 		// Verify we can find original data
 		// deaggregate the data
 		//TODO move this to deaggregator.go
-		var KplMagicHeader = fmt.Sprintf("%q", []byte("\xf3\x89\x9a\xc2"))
-		KplMagicLen := 4  // Length of magic header for KPL Aggregate Record checking.
-		DigestSize  := 16 // MD5 Message size for protobuf.
 
 		dataMagic := fmt.Sprintf("%q", decompressed[:KplMagicLen])
 		decodedDataNoMagic := decompressed[KplMagicLen:]
