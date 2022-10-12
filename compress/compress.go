@@ -42,6 +42,7 @@ func New(conf *Config) (Compression, error) {
 }
 
 // defaultCompression holds global compression instance.
+// Assign a default compression for testing
 var defaultCompression Compression
 
 // Init will initialise global compression instance.

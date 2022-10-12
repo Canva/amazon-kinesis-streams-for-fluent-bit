@@ -266,7 +266,7 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 
 	fluentTag := C.GoString(tag)
 
-	events, count, retCode := unpackRecords(kinesisOutput, data, length)
+	kinesisPutRequests, count, retCode := unpackRecords(kinesisOutput, data, length)
 	if retCode != output.FLB_OK {
 		logrus.Errorf("[kinesis %d] failed to unpackRecords with tag: %s\n", kinesisOutput.PluginID, fluentTag)
 
@@ -275,10 +275,10 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 
 	logrus.Debugf("[kinesis %d] Flushing %d logs with tag: %s\n", kinesisOutput.PluginID, count, fluentTag)
 	if kinesisOutput.Concurrency > 0 {
-		return kinesisOutput.FlushConcurrent(count, events)
+		return kinesisOutput.FlushConcurrent(count, kinesisPutRequests)
 	}
 
-	return kinesisOutput.Flush(&events)
+	return kinesisOutput.Flush(&kinesisPutRequests)
 }
 
 func unpackRecords(kinesisOutput *kinesis.OutputPlugin, data unsafe.Pointer, length C.int) ([]*kinesisAPI.PutRecordsRequestEntry, int, int) {
@@ -322,6 +322,8 @@ func unpackRecords(kinesisOutput *kinesis.OutputPlugin, data unsafe.Pointer, len
 	}
 
 	if kinesisOutput.IsAggregate() {
+		// This doesn't flush anything, it just aggregates the records.
+		// TODO should rename it.
 		retCode := kinesisOutput.FlushAggregatedRecords(&records)
 		if retCode != output.FLB_OK {
 			return nil, 0, retCode

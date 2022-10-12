@@ -329,6 +329,7 @@ func (outputPlugin *OutputPlugin) Flush(records *[]*kinesis.PutRecordsRequestEnt
 				logrus.Errorf("[kinesis %d] %v\n", outputPlugin.PluginID, err)
 			}
 			if retCode != fluentbit.FLB_OK {
+				// This logic could be improved to be more readable
 				unsent := (*records)[i:]
 				// requestBuf will contain records sendCurrentBatch failed to send,
 				// combine those with the records yet to be sent/batched
