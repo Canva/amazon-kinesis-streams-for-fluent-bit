@@ -262,6 +262,96 @@ func TestAddRecordAndFlushAggregateZstd(t *testing.T) {
 	assert.Equal(t, retCode, fluentbit.FLB_OK, "Expected Flush return code to be FLB_OK")
 }
 
+func FuzzAddRecordAndFlushAggregateZstd(f *testing.F) {
+	// Init without compression
+	compress.Init(&compress.Config{
+		Format: compress.FormatZSTD,
+		Level:  1,
+	})
+
+	testcases := []interface{}{"2022.11.9 this is a test log", "!1234500000000000001231321321111"}
+    for _, tc := range testcases {
+        f.Add(tc)  // Use f.Add to provide a seed corpus
+	}
+	f.Fuzz(func(t *testing.T, log string){
+		records := make([]*kinesis.PutRecordsRequestEntry, 0, 500)
+
+		record := map[interface{}]interface{}{
+			// TODO generate a random number of records with random values
+			"testkey": []byte(log),
+		}
+
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+		mockKinesis := mock_kinesis.NewMockPutRecordsClient(ctrl)
+
+		mockKinesis.EXPECT().PutRecords(gomock.Any()).Return(&kinesis.PutRecordsOutput{
+			FailedRecordCount: aws.Int64(0),
+		}, nil)
+
+		outputPlugin, _ := newMockOutputPlugin(mockKinesis, true)
+
+		checkIsAggregate := outputPlugin.IsAggregate()
+		assert.Equal(t, checkIsAggregate, true, "Expected IsAggregate() to return true")
+
+		timeStamp := time.Now()
+		retCode := outputPlugin.AddRecord(&records, record, &timeStamp)
+		assert.Equal(t, retCode, fluentbit.FLB_OK, "Expected AddRecord return code to be FLB_OK")
+
+		retCode = outputPlugin.FlushAggregatedRecords(&records)
+		assert.Equal(t, retCode, fluentbit.FLB_OK, "Expected FlushAggregatedRecords return code to be FLB_OK")
+
+		// TODO verify correctness of the data
+		assert.Equal(t, len(records), 1, "We only expect one kinesis record")
+		// Verify decompression
+		var decoder, _ = zstd.NewReader(nil, zstd.WithDecoderConcurrency(0))
+		decompressed, err := decoder.DecodeAll(records[0].Data, nil)
+		assert.Equal(t, err, nil, "Decompression should be successful")
+
+		// Verify we can find original data
+		// deaggregate the data
+		//TODO move this to deaggregator.go
+		var KplMagicHeader = fmt.Sprintf("%q", []byte("\xf3\x89\x9a\xc2"))
+		KplMagicLen := 4  // Length of magic header for KPL Aggregate Record checking.
+		DigestSize  := 16 // MD5 Message size for protobuf.
+
+		dataMagic := fmt.Sprintf("%q", decompressed[:KplMagicLen])
+		decodedDataNoMagic := decompressed[KplMagicLen:]
+		isAggregated := true
+		if KplMagicHeader != dataMagic || len(decodedDataNoMagic) <= DigestSize {
+			isAggregated = false
+		}
+		assert.Equal(t, isAggregated, true, "Record should be aggregated")
+		messageDigest := fmt.Sprintf("%x", decodedDataNoMagic[len(decodedDataNoMagic)-DigestSize:])
+		messageData := decodedDataNoMagic[:len(decodedDataNoMagic)-DigestSize]
+
+		calculatedDigest := fmt.Sprintf("%x", md5.Sum(messageData))
+
+		// Check protobuf MD5 hash matches MD5 sum of record
+		if messageDigest != calculatedDigest {
+			isAggregated = false
+		}
+		assert.Equal(t, isAggregated, true, "Record should be aggregated and with correct checksum")
+		aggRecord := &aggregate.AggregatedRecord{}
+		err = proto.Unmarshal(messageData, aggRecord)
+		assert.Equal(t, err, nil, "Proto unmarshall should be successful")
+
+		// partitionKeys := aggRecord.PartitionKeyTable
+
+		// TODO check type
+		var read_record map[string]interface{}
+		data := aggRecord.Records[0].Data
+		err = json.Unmarshal(data, &read_record)
+		assert.Equal(t, err, nil, "Json unmarshall should be successful")
+		for k, v := range record{
+			k_s := fmt.Sprint(k)
+			assert.Equal(t, v, read_record[k_s])
+		}
+
+		retCode = outputPlugin.Flush(&records)
+		assert.Equal(t, retCode, fluentbit.FLB_OK, "Expected Flush return code to be FLB_OK")
+	})
+}
 func TestAddRecordWithConcurrency(t *testing.T) {
 	records := make([]*kinesis.PutRecordsRequestEntry, 0, 500)
 
