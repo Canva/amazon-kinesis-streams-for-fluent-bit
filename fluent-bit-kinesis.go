@@ -104,8 +104,8 @@ func newKinesisOutput(ctx unsafe.Pointer, pluginID int) (*kinesis.OutputPlugin, 
 	aggregationCompressionLevel := output.FLBPluginConfigKey(ctx, "aggregation_compression_level")
 	logrus.Infof("[kinesis %d] plugin parameter aggregation_compression_level = %q", pluginID, aggregationCompressionLevel)
 
-	enrichRecords := output.FLBPluginConfigKey(ctx, "enrich_records")
-	logrus.Infof("[kinesis %d] plugin parameter enrich_records = %q", pluginID, enrichRecords)
+	enricherEnvironmentRaw := output.FLBPluginConfigKey(ctx, "enricher")
+	logrus.Infof("[kinesis %d] plugin parameter enricher = %q", pluginID, enricherEnvironmentRaw)
 
 	if stream == "" || region == "" {
 		return nil, fmt.Errorf("[kinesis %d] stream and region are required configuration parameters", pluginID)
@@ -216,12 +216,21 @@ func newKinesisOutput(ctx unsafe.Pointer, pluginID int) (*kinesis.OutputPlugin, 
 		}
 	}
 
-	enricherEnable := false
-	if strings.ToLower(enrichRecords) == "true" {
-		enricherEnable = true
+	var enricherEnvironment enricher.Environment
+	switch enricherEnvironmentRaw {
+	case "", string(enricher.EnvironmentNoop):
+		enricherEnvironment = enricher.EnvironmentNoop
+	case string(enricher.EnvironmentECS):
+		enricherEnvironment = enricher.EnvironmentECS
+	case string(enricher.EnvironmentEKS):
+		enricherEnvironment = enricher.EnvironmentEKS
+	default:
+		return nil, fmt.Errorf("[kinesis %d] Invalid 'enricher' value %q specified, must be 'noop', 'ecs', 'eks', or undefined", pluginID, enricherEnvironmentRaw)
 	}
 
-	enricher.Init(enricherEnable)
+	enricher.Init(&enricher.Config{
+		Environment: enricherEnvironment,
+	})
 	compress.Init(&compress.Config{
 		Format: aggregationCompressionFormat,
 		Level:  aggregationCompressionLevelInt,

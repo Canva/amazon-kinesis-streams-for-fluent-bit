@@ -1,117 +1,62 @@
 package enricher
 
 import (
-	"os"
-	"regexp"
-	"strconv"
+	"errors"
 	"time"
 
-	"github.com/sirupsen/logrus"
+	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher/ecs"
+	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher/eks"
+	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher/noop"
 )
+
+// Enricher modifies records by enriching them.
+type Enricher interface {
+	EnrichRecord(r map[interface{}]interface{}, t time.Time) map[interface{}]interface{}
+}
+
+// Environment is the environment that enricher works in.
+type Environment string
+
+// Environment is the environment that enricher works in.
+const (
+	EnvironmentNoop = Environment("noop")
+	EnvironmentECS  = Environment("ecs")
+	EnvironmentEKS  = Environment("eks")
+)
+
+// Config holds configurations need for creating a new Enricher instance.
+type Config struct {
+	Environment Environment
+}
+
+// New creates an instance of Enricher.
+// Based on the Environment value, it creates corresponding instance.
+func New(conf *Config) (Enricher, error) {
+	switch conf.Environment {
+	default:
+		return nil, errors.New("enricher environment not found")
+	case "", EnvironmentNoop:
+		return noop.New(), nil
+	case EnvironmentECS:
+		return ecs.New(), nil
+	case EnvironmentEKS:
+		return eks.New(), nil
+	}
+}
+
+// defaultEnricher holds global Enricher instance.
+var defaultEnricher Enricher
+
+// Init will initialise global Enricher instance.
+func Init(conf *Config) error {
+	var err error
+
+	defaultEnricher, err = New(conf)
+
+	return err
+}
 
 // EnrichRecord modifies existing record.
 func EnrichRecord(r map[interface{}]interface{}, t time.Time) map[interface{}]interface{} {
-	return defaultEnricher.enrichRecord(r, t)
-}
-
-type enricher struct {
-	enable          bool
-	canvaAWSAccount string
-	canvaAppName    string
-	logGroup        string
-	ecsTaskFamily   string
-	ecsTaskRevision int
-}
-
-var defaultEnricher *enricher
-
-// Init will initialise defaultEnricher instance.
-func Init(enable bool) {
-	if !enable {
-		defaultEnricher = new(enricher)
-		return
-	}
-
-	ecsTaskDefinition := os.Getenv("ECS_TASK_DEFINITION")
-	re := regexp.MustCompile(`^(?P<ecs_task_family>[^ ]*):(?P<ecs_task_revision>[\d]+)$`)
-	ecsTaskDefinitionParts := re.FindStringSubmatch(ecsTaskDefinition)
-	var (
-		ecsTaskFamily   string
-		ecsTaskRevision int
-	)
-	ecsTaskFamilyIndex := re.SubexpIndex("ecs_task_family")
-	ecsTaskRevisionIndex := re.SubexpIndex("ecs_task_revision")
-
-	if len(ecsTaskDefinitionParts) >= ecsTaskFamilyIndex {
-		ecsTaskFamily = ecsTaskDefinitionParts[ecsTaskFamilyIndex]
-	}
-	if len(ecsTaskDefinitionParts) >= ecsTaskRevisionIndex {
-		var err error
-		ecsTaskRevision, err = strconv.Atoi(ecsTaskDefinitionParts[re.SubexpIndex("ecs_task_revision")])
-		if err != nil {
-			logrus.Warnf("[kinesis] ecs_task_revision not found for ECS_TASK_DEFINITION=%s", ecsTaskDefinition)
-		}
-	}
-
-	defaultEnricher = &enricher{
-		enable:          true,
-		canvaAWSAccount: os.Getenv("CANVA_AWS_ACCOUNT"),
-		canvaAppName:    os.Getenv("CANVA_APP_NAME"),
-		logGroup:        os.Getenv("LOG_GROUP"),
-		ecsTaskFamily:   ecsTaskFamily,
-		ecsTaskRevision: ecsTaskRevision,
-	}
-}
-
-// enrichRecord modifies existing record.
-func (enr *enricher) enrichRecord(r map[interface{}]interface{}, t time.Time) map[interface{}]interface{} {
-	if !enr.enable {
-		return r
-	}
-
-	resource := map[interface{}]interface{}{
-		"cloud.account.id":      enr.canvaAWSAccount,
-		"service.name":          enr.canvaAppName,
-		"cloud.platform":        "aws_ecs",
-		"aws.ecs.launchtype":    "EC2",
-		"aws.ecs.task.family":   enr.ecsTaskFamily,
-		"aws.ecs.task.revision": enr.ecsTaskRevision,
-		"aws.log.group.names":   enr.logGroup,
-	}
-	body := make(map[interface{}]interface{})
-
-	var (
-		ok        bool
-		strVal    string
-		timestamp interface{}
-	)
-	for k, v := range r {
-		strVal, ok = k.(string)
-		if ok {
-			switch strVal {
-			case "ecs_task_definition":
-				// Skip
-			case "timestamp":
-				timestamp = v
-			case "ec2_instance_id":
-				resource["host.id"] = v
-			case "ecs_cluster":
-				resource["aws.ecs.cluster.name"] = v
-			case "ecs_task_arn":
-				resource["aws.ecs.task.arn"] = v
-			case "container_id":
-				resource["container.id"] = v
-			case "container_name":
-				resource["container.name"] = v
-			default:
-				body[k] = v
-			}
-		}
-	}
-	return map[interface{}]interface{}{
-		"resource":          resource,
-		"body":              body,
-		"timestamp":         timestamp,
-		"observedTimestamp": t.UnixMilli(),
-	}
+	return defaultEnricher.EnrichRecord(r, t)
 }
