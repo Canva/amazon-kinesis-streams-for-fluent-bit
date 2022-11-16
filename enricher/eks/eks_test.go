@@ -78,6 +78,7 @@ func TestEKS_EnrichRecord(t *testing.T) {
 					"k8s.pod.name":       "test_pod_name",
 					"k8s.pod.uid":        "test_pod_id",
 					"service.name":       "test_canva_component",
+					"canva.flavor":       "dev",
 				},
 				"body": map[interface{}]interface{}{
 					"other_key_1": "other_value_1",

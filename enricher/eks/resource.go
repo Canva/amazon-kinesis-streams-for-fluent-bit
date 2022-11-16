@@ -58,6 +58,8 @@ func (res resource) extractFromLabelsTags(tags interface{}) {
 			switch strKey {
 			case "canva.component":
 				res["service.name"] = v
+			case "canva.flavor":
+				res["canva.flavor"] = v
 			default:
 				// Skip
 			}

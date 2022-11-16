@@ -100,6 +100,7 @@ func Test_resource_extractFromLabelsTags(t *testing.T) {
 			},
 			resource{
 				"service.name": "test_canva_component",
+				"canva.flavor": "dev",
 			},
 		},
 		{
