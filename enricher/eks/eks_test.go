@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher/eks"
+	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher/fieldmap"
 	"github.com/maxatome/go-testdeep/td"
 )
 
@@ -24,7 +25,7 @@ func TestEnrichRecordsWithAccountId(t *testing.T) {
 			Expected: map[interface{}]interface{}{
 				"log": "hello world",
 				"resource": map[interface{}]interface{}{
-					"account_id": int64(1234567),
+					fieldmap.RESOURCE_CLOUD_ACCOUNT_ID: int64(1234567),
 				},
 			},
 		},

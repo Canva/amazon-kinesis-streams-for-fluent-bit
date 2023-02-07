@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher"
+	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher/fieldmap"
 )
 
 func TestEnrichRecords(t *testing.T) {
@@ -45,18 +46,18 @@ func TestEnrichRecords(t *testing.T) {
 			},
 			want: map[interface{}]interface{}{
 				"resource": map[interface{}]interface{}{
-					"cloud.account.id":      "canva_aws_account_val",
-					"service.name":          "canva_app_name_val",
-					"cloud.platform":        "aws_ecs",
-					"aws.ecs.launchtype":    "EC2",
-					"aws.ecs.task.family":   "ecs_task_family_val",
-					"aws.ecs.task.revision": 10001,
-					"aws.log.group.names":   "log_group_val",
-					"host.id":               "ec2_instance_id_val",
-					"aws.ecs.cluster.name":  "ecs_cluster_val",
-					"aws.ecs.task.arn":      "ecs_task_arn_val",
-					"container.id":          "container_id_val",
-					"container.name":        "container_name_val",
+					fieldmap.RESOURCE_CLOUD_ACCOUNT_ID: "canva_aws_account_val",
+					"service.name":                     "canva_app_name_val",
+					"cloud.platform":                   "aws_ecs",
+					"aws.ecs.launchtype":               "EC2",
+					"aws.ecs.task.family":              "ecs_task_family_val",
+					"aws.ecs.task.revision":            10001,
+					"aws.log.group.names":              "log_group_val",
+					"host.id":                          "ec2_instance_id_val",
+					"aws.ecs.cluster.name":             "ecs_cluster_val",
+					"aws.ecs.task.arn":                 "ecs_task_arn_val",
+					"container.id":                     "container_id_val",
+					"container.name":                   "container_name_val",
 				},
 				"body": map[interface{}]interface{}{
 					"other_key_1": "other_value_1",
