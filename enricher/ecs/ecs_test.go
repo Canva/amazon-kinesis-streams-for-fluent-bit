@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher"
-	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher/fieldmap"
+	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher/mappings"
 )
 
 func TestEnrichRecords(t *testing.T) {
@@ -46,7 +46,7 @@ func TestEnrichRecords(t *testing.T) {
 			},
 			want: map[interface{}]interface{}{
 				"resource": map[interface{}]interface{}{
-					fieldmap.RESOURCE_CLOUD_ACCOUNT_ID: "canva_aws_account_val",
+					mappings.RESOURCE_CLOUD_ACCOUNT_ID: "canva_aws_account_val",
 					"service.name":                     "canva_app_name_val",
 					"cloud.platform":                   "aws_ecs",
 					"aws.ecs.launchtype":               "EC2",

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher"
-	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher/fieldmap"
+	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher/mappings"
 	"github.com/sirupsen/logrus"
 )
 
@@ -55,7 +55,7 @@ func NewEnricher() *Enricher {
 // EnrichRecord modifies existing record.
 func (enr *Enricher) EnrichRecord(r map[interface{}]interface{}, t time.Time) map[interface{}]interface{} {
 	resource := map[interface{}]interface{}{
-		fieldmap.RESOURCE_CLOUD_ACCOUNT_ID: enr.canvaAWSAccount,
+		mappings.RESOURCE_CLOUD_ACCOUNT_ID: enr.canvaAWSAccount,
 		"service.name":                     enr.canvaAppName,
 		"cloud.platform":                   "aws_ecs",
 		"aws.ecs.launchtype":               "EC2",
