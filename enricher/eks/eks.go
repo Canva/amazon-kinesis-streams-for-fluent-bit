@@ -9,15 +9,17 @@ import (
 )
 
 type Enricher struct {
-	accountId    string `env:"CANVA_AWS_ACCOUNT"`
-	accountGroup string `env:"CANVA_AWS_ACCOUNT_GROUP"`
+	AccountId    string `env:"CANVA_AWS_ACCOUNT,required"`
+	AccountGroup string `env:"CANVA_AWS_ACCOUNT_GROUP,required"`
 }
 
 func NewEnricher() (*Enricher, error) {
 	enricher := Enricher{}
-	err := env.Parse(&enricher)
+	if err := env.Parse(&enricher); err != nil {
+		return nil, err
+	}
 
-	return &enricher, err
+	return &enricher, nil
 }
 
 var _ enricher.IEnricher = (*Enricher)(nil)
@@ -25,8 +27,8 @@ var _ enricher.IEnricher = (*Enricher)(nil)
 func (e Enricher) EnrichRecord(r map[interface{}]interface{}, _ time.Time) map[interface{}]interface{} {
 	// add resource attributes
 	r["resource"] = map[interface{}]interface{}{
-		mappings.RESOURCE_CLOUD_ACCOUNT_ID: e.accountId,
-		mappings.RESOURCE_ACCOUNT_GROUP:    e.accountGroup,
+		mappings.RESOURCE_CLOUD_ACCOUNT_ID: e.AccountId,
+		mappings.RESOURCE_ACCOUNT_GROUP:    e.AccountGroup,
 	}
 
 	return r

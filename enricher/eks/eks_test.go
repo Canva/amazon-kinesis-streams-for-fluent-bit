@@ -22,8 +22,19 @@ func TestValidNewEnricher(t *testing.T) {
 				mappings.ENV_ACCOUNT_GROUP: DummyAccountGroup,
 			},
 			Expected: &Enricher{
-				accountId:    "1234567890",
-				accountGroup: DummyAccountGroup,
+				AccountId:    "1234567890",
+				AccountGroup: DummyAccountGroup,
+			},
+		},
+		{
+			Name: "Gets Account Group",
+			Env: map[string]string{
+				mappings.ENV_ACCOUNT_ID:    DummyAccountId,
+				mappings.ENV_ACCOUNT_GROUP: "PII",
+			},
+			Expected: &Enricher{
+				AccountId:    DummyAccountId,
+				AccountGroup: "PII",
 			},
 		},
 	}
@@ -44,6 +55,13 @@ func TestValidNewEnricher(t *testing.T) {
 	}
 }
 
+func TestInvalidNewEnricher(t *testing.T) {
+	enricher, err := NewEnricher()
+
+	assert.Nil(t, enricher)
+	assert.Error(t, err)
+}
+
 func TestEnrichRecordsWithAccountId(t *testing.T) {
 	var cases = []struct {
 		Name     string
@@ -54,8 +72,8 @@ func TestEnrichRecordsWithAccountId(t *testing.T) {
 		{
 			Name: "Adds Account Id",
 			Enricher: Enricher{
-				accountId:    "1234567",
-				accountGroup: DummyAccountGroup,
+				AccountId:    "1234567",
+				AccountGroup: DummyAccountGroup,
 			},
 			Input: map[interface{}]interface{}{
 				"log": "hello world",
@@ -71,8 +89,8 @@ func TestEnrichRecordsWithAccountId(t *testing.T) {
 		{
 			Name: "Adds Account Group",
 			Enricher: Enricher{
-				accountId:    DummyAccountId,
-				accountGroup: "PII",
+				AccountId:    DummyAccountId,
+				AccountGroup: "PII",
 			},
 			Input: map[interface{}]interface{}{
 				"log": "hello world",

@@ -113,8 +113,6 @@ func newKinesisOutput(ctx unsafe.Pointer, pluginID int) (*kinesis.OutputPlugin, 
 
 	enrichEKSRecords := output.FLBPluginConfigKey(ctx, "enrich_eks_records")
 	logrus.Infof("[kinesis %d] plugin parameter enrich_eks_records = %q", pluginID, enrichEKSRecords)
-	enrichEKSAccountId := output.FLBPluginConfigKey(ctx, "enrich_eks_account_id")
-	logrus.Infof("[kinesis %d] plugin parameter enrich_eks_account_id = %q", pluginID, enrichEKSAccountId)
 
 	if stream == "" || region == "" {
 		return nil, fmt.Errorf("[kinesis %d] stream and region are required configuration parameters", pluginID)
@@ -237,12 +235,11 @@ func newKinesisOutput(ctx unsafe.Pointer, pluginID int) (*kinesis.OutputPlugin, 
 	// EKS Enricher
 	if strings.ToLower(enrichEKSRecords) == "true" {
 		enricherEksEnable = true
-		accountId, err := strconv.ParseInt(enrichEKSAccountId, 10, 64)
+		e, err = eks.NewEnricher()
+
 		if err != nil {
 			return nil, err
 		}
-
-		e = eks.NewEnricher(accountId)
 	}
 
 	if enricherEnable && enricherEksEnable {
