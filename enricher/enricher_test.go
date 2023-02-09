@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher"
-	"github.com/maxatome/go-testdeep/td"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestEnrichRecord(t *testing.T) {
@@ -44,7 +44,7 @@ func TestEnrichRecord(t *testing.T) {
 
 			actual := en.EnrichRecord(v.Input, DummyTime)
 
-			td.Cmp(t, actual, v.Expected)
+			assert.Equal(t, v.Expected, actual)
 		})
 	}
 }
