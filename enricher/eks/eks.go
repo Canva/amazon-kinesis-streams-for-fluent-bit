@@ -10,7 +10,7 @@ import (
 
 type Enricher struct {
 	AccountId    string `env:"CANVA_AWS_ACCOUNT,required"`
-	AccountGroup string `env:"CANVA_AWS_ACCOUNT_GROUP,required"`
+	AccountGroup string `env:"CANVA_ACCOUNT_GROUP,required"`
 }
 
 func NewEnricher() (*Enricher, error) {
