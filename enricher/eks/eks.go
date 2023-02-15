@@ -12,7 +12,7 @@ type Enricher struct {
 	// AWS Account ID
 	AccountId string `env:"CANVA_AWS_ACCOUNT,required"`
 	// Canva Account Group Function
-	CanvaFunction string `env:"CANVA_FUNCTION,required"`
+	CanvaAccountFunction string `env:"CANVA_ACCOUNT_FUNCTION,required"`
 }
 
 func NewEnricher() (*Enricher, error) {
@@ -30,7 +30,7 @@ func (e Enricher) EnrichRecord(r map[interface{}]interface{}, _ time.Time) map[i
 	// add resource attributes
 	r["resource"] = map[interface{}]interface{}{
 		mappings.RESOURCE_CLOUD_ACCOUNT_ID: e.AccountId,
-		mappings.RESOURCE_ACCOUNT_GROUP:    e.CanvaFunction,
+		mappings.RESOURCE_ACCOUNT_GROUP:    e.CanvaAccountFunction,
 	}
 
 	return r
