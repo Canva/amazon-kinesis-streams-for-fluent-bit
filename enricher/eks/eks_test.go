@@ -21,8 +21,8 @@ func TestValidNewEnricher(t *testing.T) {
 				mappings.ENV_ACCOUNT_GROUP: DummyAccountGroup,
 			},
 			Expected: &Enricher{
-				AccountId:    "1234567890",
-				AccountGroup: DummyAccountGroup,
+				AccountId:     "1234567890",
+				CanvaFunction: DummyAccountGroup,
 			},
 		},
 		{
@@ -32,8 +32,8 @@ func TestValidNewEnricher(t *testing.T) {
 				mappings.ENV_ACCOUNT_GROUP: "PII",
 			},
 			Expected: &Enricher{
-				AccountId:    DummyAccountId,
-				AccountGroup: "PII",
+				AccountId:     DummyAccountId,
+				CanvaFunction: "PII",
 			},
 		},
 	}
@@ -71,8 +71,8 @@ func TestEnrichRecordsWithAccountId(t *testing.T) {
 		{
 			Name: "Adds Account Id",
 			Enricher: Enricher{
-				AccountId:    "1234567",
-				AccountGroup: DummyAccountGroup,
+				AccountId:     "1234567",
+				CanvaFunction: DummyAccountGroup,
 			},
 			Input: map[interface{}]interface{}{
 				"log": "hello world",
@@ -88,8 +88,8 @@ func TestEnrichRecordsWithAccountId(t *testing.T) {
 		{
 			Name: "Adds Account Group",
 			Enricher: Enricher{
-				AccountId:    DummyAccountId,
-				AccountGroup: "PII",
+				AccountId:     DummyAccountId,
+				CanvaFunction: "PII",
 			},
 			Input: map[interface{}]interface{}{
 				"log": "hello world",
