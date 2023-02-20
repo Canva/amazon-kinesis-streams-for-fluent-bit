@@ -45,6 +45,7 @@ const (
 var (
 	pluginInstances []*kinesis.OutputPlugin
 	enr             *enricher.Enricher
+	logEnrich       bool
 )
 
 func addPluginInstance(ctx unsafe.Pointer) error {
@@ -114,6 +115,13 @@ func newKinesisOutput(ctx unsafe.Pointer, pluginID int) (*kinesis.OutputPlugin, 
 
 	enrichEKSRecords := output.FLBPluginConfigKey(ctx, "enrich_eks_records")
 	logrus.Infof("[kinesis %d] plugin parameter enrich_eks_records = %q", pluginID, enrichEKSRecords)
+
+	logEnrichment := output.FLBPluginConfigKey(ctx, "log_enrichment")
+	logrus.Infof("[kinesis %d] plugin parameter log_enrichment = %q", pluginID, enrichEKSRecords)
+
+	if logEnrichment == "true" {
+		logEnrich = true
+	}
 
 	if stream == "" || region == "" {
 		return nil, fmt.Errorf("[kinesis %d] stream and region are required configuration parameters", pluginID)
@@ -341,6 +349,10 @@ func unpackRecords(kinesisOutput *kinesis.OutputPlugin, data unsafe.Pointer, len
 		}
 
 		record = enr.EnrichRecord(record, timestamp)
+		if logEnrich {
+			logrus.Info(fmt.Sprintf("Record: %v", record))
+			continue
+		}
 
 		retCode := kinesisOutput.AddRecord(&records, record, &timestamp)
 		if retCode != output.FLB_OK {
