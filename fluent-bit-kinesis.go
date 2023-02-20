@@ -34,8 +34,6 @@ import (
 	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/kinesis"
 )
 import (
-	"log"
-
 	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher/ecs"
 	jsoniter "github.com/json-iterator/go"
 )
@@ -359,7 +357,8 @@ func unpackRecords(kinesisOutput *kinesis.OutputPlugin, data unsafe.Pointer, len
 			if err != nil {
 				logrus.Error(err)
 			}
-			log.Printf("Record: %v\n", r)
+
+			logrus.Printf("Record: %v\n", r)
 		}
 
 		retCode := kinesisOutput.AddRecord(&records, record, &timestamp)
