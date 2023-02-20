@@ -33,7 +33,11 @@ import (
 	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher"
 	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/kinesis"
 )
-import "github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher/ecs"
+import (
+	"encoding/json"
+
+	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher/ecs"
+)
 
 const (
 	// Kinesis API Limit https://docs.aws.amazon.com/sdk-for-go/api/service/kinesis/#Kinesis.PutRecords
@@ -350,7 +354,11 @@ func unpackRecords(kinesisOutput *kinesis.OutputPlugin, data unsafe.Pointer, len
 
 		record = enr.EnrichRecord(record, timestamp)
 		if logEnrich {
-			logrus.Info(fmt.Sprintf("Record: %v", record))
+			r, err := json.Marshal(record)
+			if err != nil {
+				logrus.Error(err)
+			}
+			logrus.Info(fmt.Sprintf("Record: %v", r))
 			continue
 		}
 
