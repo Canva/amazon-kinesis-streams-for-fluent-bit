@@ -342,12 +342,15 @@ func unpackRecords(kinesisOutput *kinesis.OutputPlugin, data unsafe.Pointer, len
 
 		record = enr.EnrichRecord(record, timestamp)
 
-		retCode := kinesisOutput.AddRecord(&records, record, &timestamp)
-		if retCode != output.FLB_OK {
-			return nil, 0, retCode
-		}
+		// If it is not dropped, addw
+		if record != nil {
+			retCode := kinesisOutput.AddRecord(&records, record, &timestamp)
+			if retCode != output.FLB_OK {
+				return nil, 0, retCode
+			}
 
-		count++
+			count++
+		}
 	}
 
 	if kinesisOutput.IsAggregate() {
