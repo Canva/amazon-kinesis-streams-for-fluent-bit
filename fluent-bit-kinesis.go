@@ -342,7 +342,7 @@ func unpackRecords(kinesisOutput *kinesis.OutputPlugin, data unsafe.Pointer, len
 
 		record = enr.EnrichRecord(record, timestamp)
 
-		// If it is not dropped, addw
+		// If it is not dropped, push to kinesis and increment count
 		if record != nil {
 			retCode := kinesisOutput.AddRecord(&records, record, &timestamp)
 			if retCode != output.FLB_OK {
