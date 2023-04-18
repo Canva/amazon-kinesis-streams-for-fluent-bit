@@ -42,8 +42,8 @@ func (e Enricher) EnrichRecord(r map[interface{}]interface{}, t time.Time) map[i
 
 	// If Fluentbit has failed to enrich k8s metadata on the log, we insert a placeholder value for the kubernetes.service_name
 	// https://docs.google.com/document/d/1vRCUKMeo6ypnAq34iwQN7LtDsXxmlj0aYEfRofwV7A4/edit
-	if _, ok := r["kubernetes"]; !ok {
-		r["kubernetes"] = map[interface{}]interface{}{
+	if _, ok := r[mappings.KUBERNETES_RESOURCE_FIELD_NAME]; !ok {
+		r[mappings.KUBERNETES_RESOURCE_FIELD_NAME] = map[interface{}]interface{}{
 			mappings.KUBERNETES_CONTAINER_NAME: mappings.PLACEHOLDER_MISSING_KUBERNETES_METADATA,
 		}
 	}

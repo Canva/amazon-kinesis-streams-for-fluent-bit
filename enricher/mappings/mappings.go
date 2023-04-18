@@ -5,6 +5,7 @@ const (
 )
 
 const (
+	KUBERNETES_RESOURCE_FIELD_NAME          = "kubernetes"
 	KUBERNETES_CONTAINER_NAME               = "container_name"
 	PLACEHOLDER_MISSING_KUBERNETES_METADATA = "_missing_metadata"
 )
