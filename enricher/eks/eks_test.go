@@ -144,10 +144,10 @@ func TestEnrichRecords(t *testing.T) {
 				"log":                       "hello world",
 				"resource": map[interface{}]interface{}{
 					mappings.RESOURCE_CLOUD_ACCOUNT_ID: DummyAccountId,
-					mappings.RESOURCE_ACCOUNT_GROUP:    "PII",
+					mappings.RESOURCE_ACCOUNT_GROUP:    DummyAccountFunction,
 				},
 				"kubernetes": map[interface{}]interface{}{
-					"container_name": "_missing_metadata",
+					mappings.KUBERNETES_CONTAINER_NAME: mappings.PLACEHOLDER_MISSING_KUBERNETES_METADATA,
 				},
 			},
 		},
