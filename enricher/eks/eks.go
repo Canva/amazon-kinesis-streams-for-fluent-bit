@@ -3,6 +3,7 @@ package eks
 import (
 	"time"
 
+	"github.com/caarlos0/env/v7"
 	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher"
 	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher/mappings"
 )
