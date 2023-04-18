@@ -76,7 +76,7 @@ func TestEnrichRecords(t *testing.T) {
 			},
 			Input: map[interface{}]interface{}{
 				"log": "hello world",
-				"kubernetes": map[interface{}]interface{}{
+				mappings.KUBERNETES_RESOURCE_FIELD_NAME: map[interface{}]interface{}{
 					"key": "value",
 				},
 			},
@@ -87,7 +87,7 @@ func TestEnrichRecords(t *testing.T) {
 					mappings.RESOURCE_CLOUD_ACCOUNT_ID: "1234567",
 					mappings.RESOURCE_ACCOUNT_GROUP:    DummyAccountFunction,
 				},
-				"kubernetes": map[interface{}]interface{}{
+				mappings.KUBERNETES_RESOURCE_FIELD_NAME: map[interface{}]interface{}{
 					"key": "value",
 				},
 			},
@@ -100,7 +100,7 @@ func TestEnrichRecords(t *testing.T) {
 			},
 			Input: map[interface{}]interface{}{
 				"log": "hello world",
-				"kubernetes": map[interface{}]interface{}{
+				mappings.KUBERNETES_RESOURCE_FIELD_NAME: map[interface{}]interface{}{
 					"key": "value",
 				},
 			},
@@ -111,7 +111,7 @@ func TestEnrichRecords(t *testing.T) {
 					mappings.RESOURCE_CLOUD_ACCOUNT_ID: DummyAccountId,
 					mappings.RESOURCE_ACCOUNT_GROUP:    "PII",
 				},
-				"kubernetes": map[interface{}]interface{}{
+				mappings.KUBERNETES_RESOURCE_FIELD_NAME: map[interface{}]interface{}{
 					"key": "value",
 				},
 			},
@@ -124,7 +124,7 @@ func TestEnrichRecords(t *testing.T) {
 			},
 			Input: map[interface{}]interface{}{
 				"observedTimestamp": DummyTime,
-				"kubernetes": map[interface{}]interface{}{
+				mappings.KUBERNETES_RESOURCE_FIELD_NAME: map[interface{}]interface{}{
 					"key": "value",
 				},
 			},
@@ -146,7 +146,7 @@ func TestEnrichRecords(t *testing.T) {
 					mappings.RESOURCE_CLOUD_ACCOUNT_ID: DummyAccountId,
 					mappings.RESOURCE_ACCOUNT_GROUP:    DummyAccountFunction,
 				},
-				"kubernetes": map[interface{}]interface{}{
+				mappings.KUBERNETES_RESOURCE_FIELD_NAME: map[interface{}]interface{}{
 					mappings.KUBERNETES_CONTAINER_NAME: mappings.PLACEHOLDER_MISSING_KUBERNETES_METADATA,
 				},
 			},
