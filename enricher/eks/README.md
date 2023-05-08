@@ -1,9 +1,10 @@
 # EKS enricher
 This EKS enricher follows the Standardize Tagging [documentation](https://canvadev.atlassian.net/wiki/spaces/OB/pages/2869725127/Standardized+Telemetry+Tagging).
 
-
 ##  Static Tags
-These are the following static tags that are being enriched at this stage.
+Static tags are tags that do not change during runtime. These values are parsed as environment variables in `mappings.go`.
+
+These are the following tags that are being enriched: 
 
 ### Resource 
 - `cloud.partition`

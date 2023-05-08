@@ -20,6 +20,8 @@ type Enricher struct {
 	CloudPlatform             string `env:"CLOUD_PLATFORM,required"`
 }
 
+// NewEnricher returns a enricher with env vars being parsed.
+// These env vars are derived from mappings.go.
 func NewEnricher() (*Enricher, error) {
 	enricher := Enricher{}
 	if err := env.Parse(&enricher); err != nil {
