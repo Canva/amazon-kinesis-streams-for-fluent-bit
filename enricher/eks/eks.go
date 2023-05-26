@@ -36,11 +36,12 @@ var _ enricher.IEnricher = (*Enricher)(nil)
 
 func (e Enricher) EnrichRecord(r map[interface{}]interface{}, t time.Time) map[interface{}]interface{} {
 	// Drop log if "log" field and "message" field is empty
-	_, logOk := r[mappings.KUBERNETES_RESOURCE_FIELD_NAME]
-	_, msgOk := r[mappings.MSG_FIELD_NAME]
+	_, logOk := r[mappings.LOG_FIELD_NAME]
+	_, msgOk := r[mappings.MESSAGE_FIELD_NAME]
 	if !logOk && !msgOk {
 		return nil
 	}
+
 	// Add static attributes
 	r[mappings.RESOURCE_FIELD_NAME] = map[interface{}]interface{}{
 		mappings.RESOURCE_ACCOUNT_ID:             e.CloudAccountId,
@@ -54,18 +55,16 @@ func (e Enricher) EnrichRecord(r map[interface{}]interface{}, t time.Time) map[i
 	}
 	r[mappings.OBSERVED_TIMESTAMP] = t.UnixMilli()
 
-	// If Fluentbit has failed to enrich k8s metadata on the log, this can mean two things:
-	if _, ok := r[mappings.KUBERNETES_RESOURCE_FIELD_NAME]; !ok {
-		// The log is a journal systemd log
-		if _, transportOk := r[mappings.TRANSPORT_FIELD_NAME]; msgOk && transportOk {
-			r[mappings.RESOURCE_FIELD_NAME].(map[interface{}]interface{})[mappings.RESOURCE_SERVICE_NAME] = "eks_host_log"
-		} else {
-			// The pod has started up and potentially died too early for us to enrich the log
-			// We insert a placeholder value for the kubernetes.container_name
-			// https://docs.google.com/document/d/1vRCUKMeo6ypnAq34iwQN7LtDsXxmlj0aYEfRofwV7A4/edit
-			r[mappings.KUBERNETES_RESOURCE_FIELD_NAME] = map[interface{}]interface{}{
-				mappings.KUBERNETES_CONTAINER_NAME: mappings.PLACEHOLDER_MISSING_KUBERNETES_METADATA,
-			}
+	// The log is a journal systemd log
+	if _, transportOk := r[mappings.TRANSPORT_FIELD_NAME]; msgOk && transportOk {
+		r[mappings.RESOURCE_FIELD_NAME].(map[interface{}]interface{})[mappings.RESOURCE_SERVICE_NAME] = mappings.EKS_HOST_LOG_SERVICE_NAME
+		r[mappings.KUBERNETES_RESOURCE_FIELD_NAME] = map[interface{}]interface{}{}
+	} else if _, ok := r[mappings.KUBERNETES_RESOURCE_FIELD_NAME]; !ok {
+		// The pod has started up and potentially died too early for us to enrich the log
+		// We insert a placeholder value for the kubernetes.container_name
+		// https://docs.google.com/document/d/1vRCUKMeo6ypnAq34iwQN7LtDsXxmlj0aYEfRofwV7A4/edit
+		r[mappings.KUBERNETES_RESOURCE_FIELD_NAME] = map[interface{}]interface{}{
+			mappings.KUBERNETES_CONTAINER_NAME: mappings.PLACEHOLDER_MISSING_KUBERNETES_METADATA,
 		}
 	}
 

@@ -5,9 +5,10 @@ const (
 )
 
 const (
-	LOG_FIELD_NAME       = "log"
-	MSG_FIELD_NAME       = "message"
-	TRANSPORT_FIELD_NAME = "transport"
+	LOG_FIELD_NAME            = "log"
+	MESSAGE_FIELD_NAME        = "message"
+	TRANSPORT_FIELD_NAME      = "transport"
+	EKS_HOST_LOG_SERVICE_NAME = "eks_host_log"
 )
 
 const (
