@@ -118,8 +118,11 @@ func newKinesisOutput(ctx unsafe.Pointer, pluginID int) (*kinesis.OutputPlugin, 
 	enrichEKSRecords := output.FLBPluginConfigKey(ctx, "enrich_eks_records")
 	logrus.Infof("[kinesis %d] plugin parameter enrich_eks_records = %q", pluginID, enrichEKSRecords)
 
-	enableEKSMetrics := output.FLBPluginConfigKey(ctx, "enable_eks_metrics")
-	logrus.Infof("[kinesis %d] plugin parameter enable_eks_metrics = %q", pluginID, enableEKSMetrics)
+	enableEKSMetric := output.FLBPluginConfigKey(ctx, "enable_eks_metric")
+	logrus.Infof("[kinesis %d] plugin parameter enable_eks_metric = %q", pluginID, enableEKSMetric)
+
+	eksMetricPort := output.FLBPluginConfigKey(ctx, "eks_metric_port")
+	logrus.Infof("[kinesis %d] plugin parameter eks_metric_port = %q", pluginID, enableEKSMetric)
 
 	if stream == "" || region == "" {
 		return nil, fmt.Errorf("[kinesis %d] stream and region are required configuration parameters", pluginID)
@@ -230,20 +233,6 @@ func newKinesisOutput(ctx unsafe.Pointer, pluginID int) (*kinesis.OutputPlugin, 
 		}
 	}
 
-	var ms *metricserver.MetricServer
-
-	if strings.ToLower(enableEKSMetrics) == "true" {
-		ms, err := metricserver.New()
-
-		if err != nil {
-			return nil, err
-		}
-
-		go func() {
-			ms.Start()
-		}()
-	}
-
 	var e enricher.IEnricher
 
 	var enricherEnable bool
@@ -257,6 +246,26 @@ func newKinesisOutput(ctx unsafe.Pointer, pluginID int) (*kinesis.OutputPlugin, 
 	// EKS Enricher
 	if strings.ToLower(enrichEKSRecords) == "true" {
 		enricherEksEnable = true
+
+		var ms *metricserver.MetricServer
+
+		if strings.ToLower(enableEKSMetric) == "true" {
+			port, err := strconv.Atoi(eksMetricPort)
+
+			if err != nil {
+				return nil, err
+			}
+
+			ms, err := metricserver.New(metricserver.WithPort(port))
+
+			if err != nil {
+				return nil, err
+			}
+
+			go func() {
+				ms.Start()
+			}()
+		}
 		e, err = eks.NewEnricher(eks.WithMetricServer(ms))
 
 		if err != nil {
