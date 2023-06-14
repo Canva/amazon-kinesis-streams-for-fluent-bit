@@ -35,12 +35,20 @@ type Enricher struct {
 // NewEnricher returns a enricher with env vars being parsed.
 // These env vars are derived from mappings.go.
 func NewEnricher(cfgs ...EnricherConfiguration) (*Enricher, error) {
-	enricher := Enricher{}
-	if err := env.Parse(&enricher); err != nil {
+	enricher := &Enricher{}
+	if err := env.Parse(enricher); err != nil {
 		return nil, err
 	}
 
-	return &enricher, nil
+	for _, cfg := range cfgs {
+		err := cfg(enricher)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return enricher, nil
 }
 
 var _ enricher.IEnricher = (*Enricher)(nil)

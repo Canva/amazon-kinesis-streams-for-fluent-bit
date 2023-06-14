@@ -19,13 +19,13 @@ type EnricherMetric struct {
 func WithMetricServer(ms *metricserver.MetricServer) EnricherConfiguration {
 	return func(e *Enricher) error {
 		meter := ms.GetMeter("github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher/eks")
-		outputRecordCount, err := meter.Int64Counter("fluent_bit_output_record_count", metric.WithDescription("output record counter"))
+		outputRecordCount, err := meter.Int64Counter("fluentbit_output_record_count", metric.WithDescription("output record counter"))
 
 		if err != nil {
 			return err
 		}
 
-		outputDroppedCount, err := meter.Int64Counter("fluent_bit_output_record_dropped_count", metric.WithDescription("output dropped record counter where log or message does not exist"))
+		outputDroppedCount, err := meter.Int64Counter("fluentbit_output_record_dropped_count", metric.WithDescription("output dropped record counter where log or message does not exist"))
 
 		if err != nil {
 			return err
