@@ -20,7 +20,7 @@ type EnricherMetric struct {
 func WithMetricServer(ms *metricserver.MetricServer) EnricherConfiguration {
 	return func(e *Enricher) error {
 		meter := ms.GetMeter("github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher/eks")
-		outputRecordCount, err := meter.Int64Counter("fluentbit.output.record.count", metric.WithDescription("output record counter"))
+		outputRecordCount, err := meter.Int64Counter("fluentbit.output.record", metric.WithDescription("output record counter"))
 
 		if err != nil {
 			return err
@@ -42,12 +42,12 @@ func WithMetricServer(ms *metricserver.MetricServer) EnricherConfiguration {
 	}
 }
 
-func (e *Enricher) AddRecordCount(record map[interface{}]interface{}, recordType int) {
+func (e *Enricher) AddRecordCount(record map[interface{}]interface{}, logType int) {
 	if e.metric == nil {
 		return
 	}
 
-	var serviceName = inferServiceName(record)
+	var serviceName = inferServiceName(record, logType)
 
 	e.metric.outputRecordCount.Add(context.TODO(), 1, metric.WithAttributes(attribute.Key(mappings.RESOURCE_SERVICE_NAME).String(serviceName)))
 }
@@ -77,16 +77,32 @@ func (e *Enricher) AddDropCount() {
 // 	// e.metric.outputSizseCount.Add(context.TODO(), int64(len(jsonStr)), metric.WithAttributes(attribute.Key(mappings.RESOURCE_SERVICE_NAME).String(serviceName)))
 // }
 
-func inferServiceName(record map[interface{}]interface{}) string {
-	k8sPayload := record[mappings.KUBERNETES_RESOURCE_FIELD_NAME].(map[interface{}]interface{})
-	var serviceName = fmt.Sprintf("%s", k8sPayload[mappings.KUBERNETES_CONTAINER_NAME])
+func inferServiceName(record map[interface{}]interface{}, logType int) string {
+	// fallback in case unable to find service name.
+	var serviceName interface{} = "_missing"
 
-	labels, labelsExist := k8sPayload[mappings.KUBERNETES_LABELS_FIELD_NAME].(map[interface{}]interface{})
-	if labelsExist {
-		if val, ok := labels[mappings.KUBERNETES_LABELS_NAME]; ok {
-			serviceName = fmt.Sprintf("%s", val)
+	k8sPayload, ok := record[mappings.KUBERNETES_RESOURCE_FIELD_NAME].(map[interface{}]interface{})
+	// k8s field exists, set default to container name.
+	if ok {
+		serviceName = k8sPayload[mappings.KUBERNETES_CONTAINER_NAME]
+	}
+
+	switch logType {
+	case TYPE_APPLICATION:
+
+		labels, labelsExist := k8sPayload[mappings.KUBERNETES_LABELS_FIELD_NAME].(map[interface{}]interface{})
+		if labelsExist {
+			if val, ok := labels[mappings.KUBERNETES_LABELS_NAME]; ok {
+				serviceName = val
+			}
+		}
+	case TYPE_HOST:
+		if resource, ok := record[mappings.RESOURCE_FIELD_NAME].(map[interface{}]interface{}); ok {
+			if val, ok := resource[mappings.RESOURCE_SERVICE_NAME]; ok {
+				serviceName = val
+			}
 		}
 	}
 
-	return serviceName
+	return fmt.Sprintf("%s", serviceName)
 }
