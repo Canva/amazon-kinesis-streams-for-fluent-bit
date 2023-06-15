@@ -60,23 +60,6 @@ func (e *Enricher) AddDropCount() {
 	e.metric.outputDroppedCount.Add(context.TODO(), 1)
 }
 
-// func (e *Enricher) AddRecordSize(record map[interface{}]interface{}, recordType int) {
-// 	if e.metric == nil {
-// 		return
-// 	}
-
-// 	var serviceName = inferServiceName(record, recordType)
-
-// 	jsonStr, err := json.Marshal()
-// 	if err != nil {
-// 		logrus.Error(err)
-// 	}
-
-// 	fmt.Println(serviceName, len(jsonStr))
-
-// 	// e.metric.outputSizseCount.Add(context.TODO(), int64(len(jsonStr)), metric.WithAttributes(attribute.Key(mappings.RESOURCE_SERVICE_NAME).String(serviceName)))
-// }
-
 func inferServiceName(record map[interface{}]interface{}, logType int) string {
 	// fallback in case unable to find service name.
 	var serviceName interface{} = "_missing"
