@@ -6,6 +6,7 @@ import (
 	"github.com/caarlos0/env/v7"
 	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher"
 	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher/mappings"
+	"github.com/sirupsen/logrus"
 )
 
 // Log type
@@ -90,7 +91,7 @@ func (e *Enricher) EnrichRecord(r map[interface{}]interface{}, t time.Time) map[
 			}
 		}
 	default:
-		break
+		logrus.Error("record log type is invalid, record: ", r)
 	}
 
 	// Add kubernetes static attributes
