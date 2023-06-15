@@ -2,6 +2,7 @@ package eks
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher/mappings"
 	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/metricserver"
@@ -19,7 +20,7 @@ type EnricherMetric struct {
 func WithMetricServer(ms *metricserver.MetricServer) EnricherConfiguration {
 	return func(e *Enricher) error {
 		meter := ms.GetMeter("github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher/eks")
-		outputRecordCount, err := meter.Int64Counter("fluentbit.output.record", metric.WithDescription("output record counter"))
+		outputRecordCount, err := meter.Int64Counter("fluentbit.output.record.count", metric.WithDescription("output record counter"))
 
 		if err != nil {
 			return err
@@ -46,7 +47,7 @@ func (e *Enricher) AddRecordCount(record map[interface{}]interface{}, recordType
 		return
 	}
 
-	var serviceName = inferServiceName(record, recordType)
+	var serviceName = inferServiceName(record)
 
 	e.metric.outputRecordCount.Add(context.TODO(), 1, metric.WithAttributes(attribute.Key(mappings.RESOURCE_SERVICE_NAME).String(serviceName)))
 }
@@ -76,21 +77,14 @@ func (e *Enricher) AddDropCount() {
 // 	// e.metric.outputSizseCount.Add(context.TODO(), int64(len(jsonStr)), metric.WithAttributes(attribute.Key(mappings.RESOURCE_SERVICE_NAME).String(serviceName)))
 // }
 
-func inferServiceName(record map[interface{}]interface{}, recordType int) string {
-	var serviceName string
+func inferServiceName(record map[interface{}]interface{}) string {
+	k8sPayload := record[mappings.KUBERNETES_RESOURCE_FIELD_NAME].(map[interface{}]interface{})
+	var serviceName = fmt.Sprintf("%v", k8sPayload[mappings.KUBERNETES_CONTAINER_NAME])
 
-	switch recordType {
-	case TYPE_APPLICATION:
-		k8sPayload := record[mappings.KUBERNETES_RESOURCE_FIELD_NAME].(map[interface{}]interface{})
-		labels, labelsExist := k8sPayload[mappings.KUBERNETES_LABELS_FIELD_NAME].(map[interface{}]interface{})
-		if labelsExist {
-			if val, ok := labels[mappings.KUBERNETES_LABELS_NAME]; ok {
-				serviceName = val.(string)
-			}
-		}
-
-		if serviceName == "" {
-			serviceName = k8sPayload[mappings.KUBERNETES_CONTAINER_NAME].(string)
+	labels, labelsExist := k8sPayload[mappings.KUBERNETES_LABELS_FIELD_NAME].(map[interface{}]interface{})
+	if labelsExist {
+		if val, ok := labels[mappings.KUBERNETES_LABELS_NAME]; ok {
+			serviceName = fmt.Sprintf("%v", val)
 		}
 	}
 

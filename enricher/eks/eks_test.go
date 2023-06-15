@@ -47,7 +47,7 @@ func Test_EnrichRecord(t *testing.T) {
 		mappings.LOG_FIELD_NAME: dummyLog,
 		mappings.KUBERNETES_RESOURCE_FIELD_NAME: map[interface{}]interface{}{
 			mappings.KUBERNETES_LABELS_FIELD_NAME: map[interface{}]interface{}{
-				mappings.KUBERNETES_LABELS_NAME:            "service name",
+				mappings.KUBERNETES_LABELS_NAME: "service name",
 			},
 			// default value, check if this isn't removed
 			"key": "value",
@@ -84,7 +84,7 @@ func Test_EnrichRecord(t *testing.T) {
 			mappings.KUBERNETES_RESOURCE_CLUSTER_NAME: defaultEnricher.K8sClusterName,
 			mappings.KUBERNETES_RESOURCE_NODE_NAME:    defaultEnricher.K8sNodeName,
 			mappings.KUBERNETES_LABELS_FIELD_NAME: map[interface{}]interface{}{
-				mappings.KUBERNETES_LABELS_NAME:            "service name",
+				mappings.KUBERNETES_LABELS_NAME: "service name",
 			},
 		},
 		mappings.OBSERVED_TIMESTAMP: ExpectedTime,
@@ -120,6 +120,7 @@ func Test_EnrichRecord(t *testing.T) {
 				delete(expected, mappings.LOG_FIELD_NAME)
 				k8s := expected[mappings.KUBERNETES_RESOURCE_FIELD_NAME].(map[interface{}]interface{})
 				delete(k8s, "key")
+				delete(k8s, "labels")
 				expected[mappings.KUBERNETES_RESOURCE_FIELD_NAME] = k8s
 				expected[mappings.MESSAGE_FIELD_NAME] = "message"
 				expected[mappings.TRANSPORT_FIELD_NAME] = "transport"
