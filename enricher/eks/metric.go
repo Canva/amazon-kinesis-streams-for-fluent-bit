@@ -79,12 +79,12 @@ func (e *Enricher) AddDropCount() {
 
 func inferServiceName(record map[interface{}]interface{}) string {
 	k8sPayload := record[mappings.KUBERNETES_RESOURCE_FIELD_NAME].(map[interface{}]interface{})
-	var serviceName = fmt.Sprintf("%v", k8sPayload[mappings.KUBERNETES_CONTAINER_NAME])
+	var serviceName = fmt.Sprintf("%s", k8sPayload[mappings.KUBERNETES_CONTAINER_NAME])
 
 	labels, labelsExist := k8sPayload[mappings.KUBERNETES_LABELS_FIELD_NAME].(map[interface{}]interface{})
 	if labelsExist {
 		if val, ok := labels[mappings.KUBERNETES_LABELS_NAME]; ok {
-			serviceName = fmt.Sprintf("%v", val)
+			serviceName = fmt.Sprintf("%s", val)
 		}
 	}
 
