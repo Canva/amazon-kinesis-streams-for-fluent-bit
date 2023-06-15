@@ -122,7 +122,7 @@ func newKinesisOutput(ctx unsafe.Pointer, pluginID int) (*kinesis.OutputPlugin, 
 	logrus.Infof("[kinesis %d] plugin parameter enable_eks_metric = %q", pluginID, enableEKSMetric)
 
 	eksMetricPort := output.FLBPluginConfigKey(ctx, "eks_metric_port")
-	logrus.Infof("[kinesis %d] plugin parameter eks_metric_port = %q", pluginID, enableEKSMetric)
+	logrus.Infof("[kinesis %d] plugin parameter eks_metric_port = %q", pluginID, eksMetricPort)
 
 	if stream == "" || region == "" {
 		return nil, fmt.Errorf("[kinesis %d] stream and region are required configuration parameters", pluginID)
