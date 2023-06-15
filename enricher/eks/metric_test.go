@@ -12,7 +12,7 @@ func Test_InferServiceName(t *testing.T) {
 		Test     string
 		Input    map[interface{}]interface{}
 		Expected string
-		LogType  int
+		LogType  LogType
 	}
 
 	testCases := []TestCase{

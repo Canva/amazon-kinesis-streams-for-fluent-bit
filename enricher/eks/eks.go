@@ -9,9 +9,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type LogType int
+
 // Log type
 const (
-	TYPE_EMPTY = iota + 1
+	TYPE_EMPTY LogType = iota + 1
 	TYPE_APPLICATION
 	TYPE_HOST
 )
@@ -104,7 +106,7 @@ func (e *Enricher) EnrichRecord(r map[interface{}]interface{}, t time.Time) map[
 	return r
 }
 
-func (e Enricher) inferType(record map[interface{}]interface{}) int {
+func (e Enricher) inferType(record map[interface{}]interface{}) LogType {
 	_, hasApplicationLog := record[mappings.LOG_FIELD_NAME]
 	_, hasHostMsgOk := record[mappings.MESSAGE_FIELD_NAME]
 	_, hostTransportOk := record[mappings.TRANSPORT_FIELD_NAME]
