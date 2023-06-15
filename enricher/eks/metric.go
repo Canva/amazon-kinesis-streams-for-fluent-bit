@@ -19,13 +19,13 @@ type EnricherMetric struct {
 func WithMetricServer(ms *metricserver.MetricServer) EnricherConfiguration {
 	return func(e *Enricher) error {
 		meter := ms.GetMeter("github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher/eks")
-		outputRecordCount, err := meter.Int64Counter("fluentbit_output_record_count", metric.WithDescription("output record counter"))
+		outputRecordCount, err := meter.Int64Counter("fluentbit.output.record", metric.WithDescription("output record counter"))
 
 		if err != nil {
 			return err
 		}
 
-		outputDroppedCount, err := meter.Int64Counter("fluentbit_output_record_dropped_count", metric.WithDescription("output dropped record counter where log or message does not exist"))
+		outputDroppedCount, err := meter.Int64Counter("fluentbit.output.dropped.body", metric.WithDescription("output dropped record counter where log or message does not exist"))
 
 		if err != nil {
 			return err
@@ -84,12 +84,12 @@ func inferServiceName(record map[interface{}]interface{}, recordType int) string
 		k8sPayload := record[mappings.KUBERNETES_RESOURCE_FIELD_NAME].(map[interface{}]interface{})
 		labels, labelsExist := k8sPayload[mappings.KUBERNETES_LABELS_FIELD_NAME].(map[interface{}]interface{})
 		if labelsExist {
-			if val, ok := labels[mappings.KUBERNETES_LABELS_CANVA_COMPONENT]; ok {
-				serviceName = val.(string)
-			} else if val, ok := labels[mappings.KUBERNETES_LABELS_NAME]; ok {
+			if val, ok := labels[mappings.KUBERNETES_LABELS_NAME]; ok {
 				serviceName = val.(string)
 			}
-		} else {
+		}
+
+		if serviceName == "" {
 			serviceName = k8sPayload[mappings.KUBERNETES_CONTAINER_NAME].(string)
 		}
 	}

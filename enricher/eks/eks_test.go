@@ -47,7 +47,6 @@ func Test_EnrichRecord(t *testing.T) {
 		mappings.LOG_FIELD_NAME: dummyLog,
 		mappings.KUBERNETES_RESOURCE_FIELD_NAME: map[interface{}]interface{}{
 			mappings.KUBERNETES_LABELS_FIELD_NAME: map[interface{}]interface{}{
-				mappings.KUBERNETES_LABELS_CANVA_COMPONENT: "service name",
 				mappings.KUBERNETES_LABELS_NAME:            "service name",
 			},
 			// default value, check if this isn't removed
@@ -85,7 +84,6 @@ func Test_EnrichRecord(t *testing.T) {
 			mappings.KUBERNETES_RESOURCE_CLUSTER_NAME: defaultEnricher.K8sClusterName,
 			mappings.KUBERNETES_RESOURCE_NODE_NAME:    defaultEnricher.K8sNodeName,
 			mappings.KUBERNETES_LABELS_FIELD_NAME: map[interface{}]interface{}{
-				mappings.KUBERNETES_LABELS_CANVA_COMPONENT: "service name",
 				mappings.KUBERNETES_LABELS_NAME:            "service name",
 			},
 		},
