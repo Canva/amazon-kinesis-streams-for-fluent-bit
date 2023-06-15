@@ -247,7 +247,7 @@ func newKinesisOutput(ctx unsafe.Pointer, pluginID int) (*kinesis.OutputPlugin, 
 	if strings.ToLower(enrichEKSRecords) == "true" {
 		enricherEksEnable = true
 
-		var ms *metricserver.MetricServer
+		cfgs := []eks.EnricherConfiguration{}
 
 		if strings.ToLower(enableEKSMetric) == "true" {
 			port, err := strconv.Atoi(eksMetricPort)
@@ -262,11 +262,14 @@ func newKinesisOutput(ctx unsafe.Pointer, pluginID int) (*kinesis.OutputPlugin, 
 				return nil, err
 			}
 
+			cfgs = append(cfgs, eks.WithMetricServer(ms))
+
 			go func() {
 				ms.Start()
 			}()
 		}
-		e, err = eks.NewEnricher(eks.WithMetricServer(ms))
+
+		e, err = eks.NewEnricher(cfgs...)
 
 		if err != nil {
 			return nil, err
