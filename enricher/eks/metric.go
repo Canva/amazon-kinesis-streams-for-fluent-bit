@@ -49,7 +49,7 @@ func (e *Enricher) AddRecordCount(record map[interface{}]interface{}, logType Lo
 
 	var serviceName = inferServiceName(record, logType)
 
-	e.metric.outputRecordCount.Add(context.Background(), 1, metric.WithAttributes(attribute.Key(mappings.RESOURCE_SERVICE_NAME).String(serviceName)))
+	e.metric.outputRecordCount.Add(context.Background(), 1, metric.WithAttributes(attribute.Key("source").String(serviceName)))
 }
 
 func (e *Enricher) AddDropCount() {
@@ -62,7 +62,7 @@ func (e *Enricher) AddDropCount() {
 
 func inferServiceName(record map[interface{}]interface{}, logType LogType) string {
 	// fallback in case unable to find service name.
-	var serviceName interface{} = "_missing"
+	var serviceName interface{} = mappings.PLACEHOLDER_MISSING_KUBERNETES_METADATA
 
 	k8sPayload, ok := record[mappings.KUBERNETES_RESOURCE_FIELD_NAME].(map[interface{}]interface{})
 	// k8s field exists, set default to container name.
