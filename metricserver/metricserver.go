@@ -66,7 +66,7 @@ func (m *MetricServer) Start() {
 	m.s.Addr = fmt.Sprintf(":%v", m.port)
 
 	logrus.Infof("Started metric server on port %v", m.port)
-	logrus.Fatal(m.s.ListenAndServe())
+	logrus.Error(m.s.ListenAndServe())
 }
 
 func (m *MetricServer) Shutdown() {
