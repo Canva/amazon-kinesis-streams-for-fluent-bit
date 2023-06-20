@@ -2,6 +2,7 @@ package metricserver
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -66,7 +67,17 @@ func (m *MetricServer) Start() {
 	m.s.Addr = fmt.Sprintf(":%v", m.port)
 
 	logrus.Infof("Started metric server on port %v", m.port)
-	logrus.Error(m.s.ListenAndServe())
+
+	err := m.s.ListenAndServe()
+
+	// expected when Shutdown is invoked
+	if errors.Is(err, http.ErrServerClosed) {
+		logrus.Info(err)
+		return
+	}
+
+	// Any other error would fatal
+	logrus.Fatal(err)
 }
 
 func (m *MetricServer) Shutdown() {
