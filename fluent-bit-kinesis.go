@@ -401,7 +401,9 @@ func unpackRecords(kinesisOutput *kinesis.OutputPlugin, data unsafe.Pointer, len
 //export FLBPluginExit
 func FLBPluginExit() int {
 	if metricsServer != nil {
-		metricsServer.Shutdown()
+		if err := metricsServer.Shutdown(); err != nil {
+			return output.FLB_ERROR
+		}
 	}
 
 	return output.FLB_OK

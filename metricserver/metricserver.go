@@ -80,10 +80,14 @@ func (m *MetricServer) Start() {
 	logrus.Fatal(err)
 }
 
-func (m *MetricServer) Shutdown() {
+func (m *MetricServer) Shutdown() error {
 	logrus.Info("shutting down metrics server")
-	m.s.Shutdown(context.Background())
+	if err := m.s.Shutdown(context.Background()); err != nil {
+		logrus.Error("shutdown metrics server failed:", err)
+		return err
+	}
 	logrus.Info("shutdown metrics server complete")
+	return nil
 }
 
 func (m *MetricServer) GetMeter(scope string) metric.Meter {
