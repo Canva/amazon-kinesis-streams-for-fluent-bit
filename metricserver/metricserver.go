@@ -1,6 +1,7 @@
 package metricserver
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -18,6 +19,8 @@ const (
 type MetricServerConfiguration func(*MetricServer) error
 
 type MetricServer struct {
+	s http.Server
+
 	port int
 
 	meterProvider *sdk.MeterProvider
@@ -55,9 +58,21 @@ func WithPort(Port int) MetricServerConfiguration {
 }
 
 func (m *MetricServer) Start() {
-	http.Handle("/metrics", promhttp.Handler())
+	router := http.NewServeMux()
+
+	router.Handle("/metrics", promhttp.Handler())
+
+	m.s.Handler = router
+	m.s.Addr = fmt.Sprintf(":%v", m.port)
+
 	logrus.Infof("Started metric server on port %v", m.port)
-	logrus.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", m.port), nil))
+	logrus.Fatal(m.s.ListenAndServe())
+}
+
+func (m *MetricServer) Shutdown() {
+	logrus.Info("shutting down metrics server")
+	m.s.Shutdown(context.Background())
+	logrus.Info("shutdown metrics server complete")
 }
 
 func (m *MetricServer) GetMeter(scope string) metric.Meter {

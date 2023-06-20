@@ -48,6 +48,7 @@ const (
 var (
 	pluginInstances []*kinesis.OutputPlugin
 	enr             *enricher.Enricher
+	metricsServer   *metricserver.MetricServer
 )
 
 func addPluginInstance(ctx unsafe.Pointer) error {
@@ -262,6 +263,8 @@ func newKinesisOutput(ctx unsafe.Pointer, pluginID int) (*kinesis.OutputPlugin, 
 				return nil, err
 			}
 
+			metricsServer = ms
+
 			cfgs = append(cfgs, eks.WithMetricServer(ms))
 
 			go func() {
@@ -397,6 +400,9 @@ func unpackRecords(kinesisOutput *kinesis.OutputPlugin, data unsafe.Pointer, len
 
 //export FLBPluginExit
 func FLBPluginExit() int {
+	if metricsServer != nil {
+		metricsServer.Shutdown()
+	}
 
 	return output.FLB_OK
 }
