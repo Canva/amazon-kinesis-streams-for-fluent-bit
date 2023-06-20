@@ -75,7 +75,7 @@ func Test_InferServiceName(t *testing.T) {
 		{
 			Test:     "Invalid",
 			Input:    map[interface{}]interface{}{},
-			Expected: mappings.PLACEHOLDER_MISSING_KUBERNETES_METADATA,
+			Expected: "_missing_service_name",
 			LogType:  TYPE_APPLICATION,
 		},
 	}

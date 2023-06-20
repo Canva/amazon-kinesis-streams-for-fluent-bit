@@ -62,7 +62,7 @@ func (e *Enricher) AddDropCount() {
 
 func inferServiceName(record map[interface{}]interface{}, logType LogType) string {
 	// fallback in case unable to find service name.
-	var serviceName interface{} = mappings.PLACEHOLDER_MISSING_KUBERNETES_METADATA
+	var serviceName interface{} = "_missing_service_name"
 
 	k8sPayload, ok := record[mappings.KUBERNETES_RESOURCE_FIELD_NAME].(map[interface{}]interface{})
 	// k8s field exists, set default to container name.
