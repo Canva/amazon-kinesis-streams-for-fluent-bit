@@ -33,7 +33,10 @@ import (
 	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher"
 	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/kinesis"
 )
-import "github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher/ecs"
+import (
+	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher/ecs"
+	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/metricserver"
+)
 
 const (
 	// Kinesis API Limit https://docs.aws.amazon.com/sdk-for-go/api/service/kinesis/#Kinesis.PutRecords
@@ -45,6 +48,7 @@ const (
 var (
 	pluginInstances []*kinesis.OutputPlugin
 	enr             *enricher.Enricher
+	metricsServer   *metricserver.MetricServer
 )
 
 func addPluginInstance(ctx unsafe.Pointer) error {
@@ -114,6 +118,12 @@ func newKinesisOutput(ctx unsafe.Pointer, pluginID int) (*kinesis.OutputPlugin, 
 
 	enrichEKSRecords := output.FLBPluginConfigKey(ctx, "enrich_eks_records")
 	logrus.Infof("[kinesis %d] plugin parameter enrich_eks_records = %q", pluginID, enrichEKSRecords)
+
+	enableEKSMetric := output.FLBPluginConfigKey(ctx, "enable_eks_metric")
+	logrus.Infof("[kinesis %d] plugin parameter enable_eks_metric = %q", pluginID, enableEKSMetric)
+
+	eksMetricPort := output.FLBPluginConfigKey(ctx, "eks_metric_port")
+	logrus.Infof("[kinesis %d] plugin parameter eks_metric_port = %q", pluginID, eksMetricPort)
 
 	if stream == "" || region == "" {
 		return nil, fmt.Errorf("[kinesis %d] stream and region are required configuration parameters", pluginID)
@@ -237,7 +247,32 @@ func newKinesisOutput(ctx unsafe.Pointer, pluginID int) (*kinesis.OutputPlugin, 
 	// EKS Enricher
 	if strings.ToLower(enrichEKSRecords) == "true" {
 		enricherEksEnable = true
-		e, err = eks.NewEnricher()
+
+		cfgs := []eks.EnricherConfiguration{}
+
+		if strings.ToLower(enableEKSMetric) == "true" {
+			port, err := strconv.Atoi(eksMetricPort)
+
+			if err != nil {
+				return nil, err
+			}
+
+			ms, err := metricserver.New(metricserver.WithPort(port))
+
+			if err != nil {
+				return nil, err
+			}
+
+			metricsServer = ms
+
+			cfgs = append(cfgs, eks.WithMetricServer(ms))
+
+			go func() {
+				ms.Start()
+			}()
+		}
+
+		e, err = eks.NewEnricher(cfgs...)
 
 		if err != nil {
 			return nil, err
@@ -365,6 +400,11 @@ func unpackRecords(kinesisOutput *kinesis.OutputPlugin, data unsafe.Pointer, len
 
 //export FLBPluginExit
 func FLBPluginExit() int {
+	if metricsServer != nil {
+		if err := metricsServer.Shutdown(); err != nil {
+			return output.FLB_ERROR
+		}
+	}
 
 	return output.FLB_OK
 }
