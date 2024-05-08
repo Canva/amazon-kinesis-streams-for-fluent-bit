@@ -27,7 +27,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: golint
-      run: go get -u golang.org/x/lint/golint
+      run: go install golang.org/x/lint/golint@latest
 
     - name: Build
       run: make build windows-release test
