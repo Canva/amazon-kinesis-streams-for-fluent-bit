@@ -1,6 +1,6 @@
 module github.com/canva/amazon-kinesis-streams-for-fluent-bit
 
-go 1.19
+go 1.22
 
 require (
 	github.com/aws/amazon-kinesis-firehose-for-fluent-bit v1.7.0
