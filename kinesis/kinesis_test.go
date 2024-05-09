@@ -21,6 +21,8 @@ import (
 	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/kinesis/mock_kinesis"
 
 	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/aggregate"
+
+	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/compress"
 )
 
 const concurrencyRetryLimit = 4
@@ -138,6 +140,10 @@ func TestAddRecordAndFlush(t *testing.T) {
 }
 
 func TestAddRecordAndFlushAggregate(t *testing.T) {
+	compress.Init(&compress.Config{
+		Format: compress.FormatNoop,
+	})
+
 	records := make([]*kinesis.PutRecordsRequestEntry, 0, 500)
 
 	record := map[interface{}]interface{}{
