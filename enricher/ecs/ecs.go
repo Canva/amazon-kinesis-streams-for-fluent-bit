@@ -13,7 +13,9 @@ import (
 
 type Enricher struct {
 	canvaAWSAccount string
+	canvaAppId      string
 	canvaAppName    string
+	canvaComponent  string
 	logGroup        string
 	ecsTaskFamily   string
 	ecsTaskRevision int
@@ -45,7 +47,9 @@ func NewEnricher() *Enricher {
 
 	return &Enricher{
 		canvaAWSAccount: os.Getenv("CANVA_AWS_ACCOUNT"),
+		canvaAppId:      os.Getenv("CANVA_APP_ID"),
 		canvaAppName:    os.Getenv("CANVA_APP_NAME"),
+		canvaComponent:  os.Getenv("CANVA_COMPONENT"),
 		logGroup:        os.Getenv("LOG_GROUP"),
 		ecsTaskFamily:   ecsTaskFamily,
 		ecsTaskRevision: ecsTaskRevision,
@@ -55,13 +59,16 @@ func NewEnricher() *Enricher {
 // EnrichRecord modifies existing record.
 func (enr *Enricher) EnrichRecord(r map[interface{}]interface{}, t time.Time) map[interface{}]interface{} {
 	resource := map[interface{}]interface{}{
-		mappings.RESOURCE_ACCOUNT_ID: enr.canvaAWSAccount,
-		"service.name":               enr.canvaAppName,
-		"cloud.platform":             "aws_ecs",
-		"aws.ecs.launchtype":         "EC2",
-		"aws.ecs.task.family":        enr.ecsTaskFamily,
-		"aws.ecs.task.revision":      enr.ecsTaskRevision,
-		"aws.log.group.names":        enr.logGroup,
+		mappings.RESOURCE_ACCOUNT_ID:     enr.canvaAWSAccount,
+		mappings.RESOURCE_APPLICATION_ID: enr.canvaAppId,
+		mappings.RESOURCE_COMPONENT:      enr.canvaComponent,
+		mappings.RESOURCE_SERVICE_NAME:   enr.canvaAppName,
+		"service.name":                   enr.canvaAppName,
+		"cloud.platform":                 "aws_ecs",
+		"aws.ecs.launchtype":             "EC2",
+		"aws.ecs.task.family":            enr.ecsTaskFamily,
+		"aws.ecs.task.revision":          enr.ecsTaskRevision,
+		"aws.log.group.names":            enr.logGroup,
 	}
 	body := make(map[interface{}]interface{})
 

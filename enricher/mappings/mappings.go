@@ -33,6 +33,7 @@ const (
 	RESOURCE_ORGANIZATION           = "organization"
 	RESOURCE_PLATFORM               = "cloud.platform"
 	RESOURCE_PROVIDER               = "cloud.provider"
+	RESOURCE_COMPONENT              = "component"
 )
 
 const (
