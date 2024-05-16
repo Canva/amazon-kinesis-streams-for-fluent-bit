@@ -63,7 +63,6 @@ func (enr *Enricher) EnrichRecord(r map[interface{}]interface{}, t time.Time) ma
 		mappings.RESOURCE_APPLICATION_ID: enr.canvaAppId,
 		mappings.RESOURCE_COMPONENT:      enr.canvaComponent,
 		mappings.RESOURCE_SERVICE_NAME:   enr.canvaAppName,
-		"service.name":                   enr.canvaAppName,
 		"cloud.platform":                 "aws_ecs",
 		"aws.ecs.launchtype":             "EC2",
 		"aws.ecs.task.family":            enr.ecsTaskFamily,
