@@ -22,6 +22,7 @@ const (
 )
 
 const (
+	RESOURCE_APPLICATION_ID         = "application_id"
 	RESOURCE_FIELD_NAME             = "resource"
 	RESOURCE_SERVICE_NAME           = "service.name"
 	RESOURCE_PARTITION              = "cloud.partition"
