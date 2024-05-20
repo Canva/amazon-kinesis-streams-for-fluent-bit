@@ -49,7 +49,7 @@ func TestEnrichRecords(t *testing.T) {
 			want: map[interface{}]interface{}{
 				mappings.RESOURCE_FIELD_NAME: map[interface{}]interface{}{
 					mappings.RESOURCE_ACCOUNT_ID:     "canva_aws_account_val",
-					mappings.RESOURCE_APPLICATION_ID: "canva_app_id_val",
+					mappings.RESOURCE_APPLICATION_ID: "canva_application_id_val",
 					mappings.RESOURCE_COMPONENT:      "canva_component_val",
 					mappings.RESOURCE_SERVICE_NAME:   "canva_app_name_val",
 					"cloud.platform":                 "aws_ecs",
