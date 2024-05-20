@@ -23,13 +23,13 @@ func TestEnrichRecords(t *testing.T) {
 		{
 			name: "enrich",
 			enr: &Enricher{
-				canvaAWSAccount: "canva_aws_account_val",
-				canvaAppId:      "canva_app_id_val",
-				canvaAppName:    "canva_app_name_val",
-				canvaComponent:  "canva_component_val",
-				logGroup:        "log_group_val",
-				ecsTaskFamily:   "ecs_task_family_val",
-				ecsTaskRevision: 10001,
+				canvaAWSAccount:    "canva_aws_account_val",
+				canvaApplicationId: "canva_application_id_val",
+				canvaAppName:       "canva_app_name_val",
+				canvaComponent:     "canva_component_val",
+				logGroup:           "log_group_val",
+				ecsTaskFamily:      "ecs_task_family_val",
+				ecsTaskRevision:    10001,
 			},
 			args: args{
 				map[interface{}]interface{}{
