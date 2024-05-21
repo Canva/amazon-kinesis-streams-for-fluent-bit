@@ -47,7 +47,7 @@ func NewEnricher() *Enricher {
 
 	return &Enricher{
 		canvaAWSAccount:    os.Getenv("CANVA_AWS_ACCOUNT"),
-		canvaApplicationId: os.Getenv("CANVA_APP_ID"),
+		canvaApplicationId: os.Getenv("CANVA_APPLICATION_ID"),
 		canvaAppName:       os.Getenv("CANVA_APP_NAME"),
 		canvaComponent:     os.Getenv("CANVA_COMPONENT"),
 		logGroup:           os.Getenv("LOG_GROUP"),
