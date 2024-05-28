@@ -22,6 +22,7 @@ const (
 )
 
 const (
+	RESOURCE_APPLICATION_ID         = "application_id"
 	RESOURCE_FIELD_NAME             = "resource"
 	RESOURCE_SERVICE_NAME           = "service.name"
 	RESOURCE_PARTITION              = "cloud.partition"
@@ -32,6 +33,7 @@ const (
 	RESOURCE_ORGANIZATION           = "organization"
 	RESOURCE_PLATFORM               = "cloud.platform"
 	RESOURCE_PROVIDER               = "cloud.provider"
+	RESOURCE_COMPONENT              = "component"
 )
 
 const (

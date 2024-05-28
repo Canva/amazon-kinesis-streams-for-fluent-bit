@@ -12,11 +12,13 @@ import (
 )
 
 type Enricher struct {
-	canvaAWSAccount string
-	canvaAppName    string
-	logGroup        string
-	ecsTaskFamily   string
-	ecsTaskRevision int
+	canvaAWSAccount    string
+	canvaApplicationId string
+	canvaAppName       string
+	canvaComponent     string
+	logGroup           string
+	ecsTaskFamily      string
+	ecsTaskRevision    int
 }
 
 var _ enricher.IEnricher = (*Enricher)(nil)
@@ -44,24 +46,28 @@ func NewEnricher() *Enricher {
 	}
 
 	return &Enricher{
-		canvaAWSAccount: os.Getenv("CANVA_AWS_ACCOUNT"),
-		canvaAppName:    os.Getenv("CANVA_APP_NAME"),
-		logGroup:        os.Getenv("LOG_GROUP"),
-		ecsTaskFamily:   ecsTaskFamily,
-		ecsTaskRevision: ecsTaskRevision,
+		canvaAWSAccount:    os.Getenv("CANVA_AWS_ACCOUNT"),
+		canvaApplicationId: os.Getenv("CANVA_APPLICATION_ID"),
+		canvaAppName:       os.Getenv("CANVA_APP_NAME"),
+		canvaComponent:     os.Getenv("CANVA_COMPONENT"),
+		logGroup:           os.Getenv("LOG_GROUP"),
+		ecsTaskFamily:      ecsTaskFamily,
+		ecsTaskRevision:    ecsTaskRevision,
 	}
 }
 
 // EnrichRecord modifies existing record.
 func (enr *Enricher) EnrichRecord(r map[interface{}]interface{}, t time.Time) map[interface{}]interface{} {
 	resource := map[interface{}]interface{}{
-		mappings.RESOURCE_ACCOUNT_ID: enr.canvaAWSAccount,
-		"service.name":               enr.canvaAppName,
-		"cloud.platform":             "aws_ecs",
-		"aws.ecs.launchtype":         "EC2",
-		"aws.ecs.task.family":        enr.ecsTaskFamily,
-		"aws.ecs.task.revision":      enr.ecsTaskRevision,
-		"aws.log.group.names":        enr.logGroup,
+		mappings.RESOURCE_ACCOUNT_ID:     enr.canvaAWSAccount,
+		mappings.RESOURCE_APPLICATION_ID: enr.canvaApplicationId,
+		mappings.RESOURCE_COMPONENT:      enr.canvaComponent,
+		"service.name":                   enr.canvaAppName,
+		"cloud.platform":                 "aws_ecs",
+		"aws.ecs.launchtype":             "EC2",
+		"aws.ecs.task.family":            enr.ecsTaskFamily,
+		"aws.ecs.task.revision":          enr.ecsTaskRevision,
+		"aws.log.group.names":            enr.logGroup,
 	}
 	body := make(map[interface{}]interface{})
 
