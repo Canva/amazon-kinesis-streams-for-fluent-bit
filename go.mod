@@ -1,6 +1,6 @@
 module github.com/canva/amazon-kinesis-streams-for-fluent-bit
 
-go 1.22
+go 1.20
 
 require (
 	github.com/aws/amazon-kinesis-firehose-for-fluent-bit v1.7.0
@@ -28,6 +28,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
+	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
@@ -40,8 +41,7 @@ require (
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	go.opentelemetry.io/otel/sdk v1.16.0 // indirect
 	go.opentelemetry.io/otel/trace v1.16.0 // indirect
-	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
+	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
-	golang.org/x/tools v0.21.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
