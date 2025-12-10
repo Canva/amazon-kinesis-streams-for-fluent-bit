@@ -24,15 +24,18 @@ PLUGIN_VERSION := $(shell cat VERSION)
 .PHONY: release
 release:
 	mkdir -p ./bin
-	go build -buildmode c-shared -o ./bin/kinesis.so ./
+	go build -mod=vendor -buildmode c-shared -o ./bin/kinesis.so ./
 	@echo "Built Amazon Kinesis Data Streams Fluent Bit Plugin v$(PLUGIN_VERSION)"
 
 .PHONY: windows-release
 windows-release:
 	mkdir -p ./bin
-	GOOS=windows GOARCH=$(GOARCH) CGO_ENABLED=1 CC=$(COMPILER) go build -buildmode c-shared -o ./bin/kinesis.dll ./
+	GOOS=windows GOARCH=$(GOARCH) CGO_ENABLED=1 CC=$(COMPILER) go build -mod=vendor -buildmode c-shared -o ./bin/kinesis.dll ./
 	@echo "Built Amazon Kinesis Data Streams Fluent Bit Plugin v$(PLUGIN_VERSION) for Windows"
 
+.PHONY: vendor
+vendor:
+	go mod vendor
 
 .PHONY: build
 build: $(PLUGIN_BINARY) release
