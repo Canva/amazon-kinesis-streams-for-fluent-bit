@@ -14,13 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-    # This cannot be higher than the Go version used to build the plugin for
-    # release (in canva/infrastructure //app/aws-for-fluent-bit/plugin:plugin).
-    # This is currently Go 1.20.
-    - name: Set up Go 1.20
+    - name: Set up Go 1.25
       uses: actions/setup-go@v2
       with:
-        go-version: '1.20'
+        go-version: '1.25'
       id: go
 
     - name: Update apt
