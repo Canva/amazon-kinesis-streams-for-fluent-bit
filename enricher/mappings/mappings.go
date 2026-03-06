@@ -22,18 +22,29 @@ const (
 )
 
 const (
-	RESOURCE_APPLICATION_ID         = "application_id"
-	RESOURCE_FIELD_NAME             = "resource"
-	RESOURCE_SERVICE_NAME           = "service.name"
-	RESOURCE_PARTITION              = "cloud.partition"
-	RESOURCE_ACCOUNT_ID             = "cloud.account.id"
-	RESOURCE_ACCOUNT_NAME           = "cloud.account.name"
-	RESOURCE_REGION                 = "cloud.region"
-	RESOURCE_ACCOUNT_GROUP_FUNCTION = "cloud.account.function"
-	RESOURCE_ORGANIZATION           = "organization"
-	RESOURCE_PLATFORM               = "cloud.platform"
-	RESOURCE_PROVIDER               = "cloud.provider"
-	RESOURCE_COMPONENT              = "component"
+	KUBERNETES_NODE_LABEL_HOST_NAME     = "kubernetes.io/hostname"
+	KUBERNETES_NODE_LABEL_HOST_TYPE     = "node.kubernetes.io/instance-type"
+	KUBERNETES_NODE_LABEL_CLOUD_AZ_ID   = "topology.k8s.aws/zone-id"
+	KUBERNETES_NODE_LABEL_CLOUD_AZ_NAME = "topology.kubernetes.io/zone"
+)
+
+const (
+	RESOURCE_APPLICATION_ID               = "application_id"
+	RESOURCE_FIELD_NAME                   = "resource"
+	RESOURCE_SERVICE_NAME                 = "service.name"
+	RESOURCE_PARTITION                    = "cloud.partition"
+	RESOURCE_ACCOUNT_ID                   = "cloud.account.id"
+	RESOURCE_ACCOUNT_NAME                 = "cloud.account.name"
+	RESOURCE_REGION                       = "cloud.region"
+	RESOURCE_ACCOUNT_GROUP_FUNCTION       = "cloud.account.function"
+	RESOURCE_ORGANIZATION                 = "organization"
+	RESOURCE_PLATFORM                     = "cloud.platform"
+	RESOURCE_PROVIDER                     = "cloud.provider"
+	RESOURCE_COMPONENT                    = "component"
+	RESOURCE_HOST_NAME                    = "host.name"
+	RESOURCE_HOST_TYPE                    = "host.type"
+	RESOURCE_CLOUD_AVAILABILITY_ZONE_ID   = "cloud.availability_zone.id"
+	RESOURCE_CLOUD_AVAILABILITY_ZONE_NAME = "cloud.availability_zone.name"
 )
 
 const (
