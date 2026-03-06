@@ -23,7 +23,7 @@ type EnricherConfiguration func(*Enricher) error
 type Enricher struct {
 	metric *EnricherMetric
 
-	CloudAccountId            string `env:"CLOUD_ACCOUNT_ID,required"`
+	CloudAccountID            string `env:"CLOUD_ACCOUNT_ID,required"`
 	CloudAccountName          string `env:"CLOUD_ACCOUNT_NAME,required"`
 	CloudRegion               string `env:"CLOUD_REGION,required"`
 	K8sClusterName            string `env:"K8S_CLUSTER_NAME,required"`
@@ -33,6 +33,11 @@ type Enricher struct {
 	Organization              string `env:"ORGANIZATION,required"`
 	CloudProvider             string `env:"CLOUD_PROVIDER,required"`
 	CloudPlatform             string `env:"CLOUD_PLATFORM,required"`
+
+	hostName                  string
+	hostType                  string
+	cloudAvailabilityZoneID   string
+	cloudAvailabilityZoneName string
 }
 
 // NewEnricher returns a enricher with env vars being parsed.
@@ -51,7 +56,43 @@ func NewEnricher(cfgs ...EnricherConfiguration) (*Enricher, error) {
 		}
 	}
 
+	enricher.populateNodeLabels()
 	return enricher, nil
+}
+
+func (e *Enricher) populateNodeLabels() {
+	client, err := newKubeClient()
+	if err != nil {
+		logrus.WithError(err).Error("could not instantiate Kubernetes client")
+		return
+	}
+
+	nodeLabels, err := client.getNodeLabels(e.K8sNodeName)
+	if err != nil {
+		logrus.WithError(err).WithField("k8s.node.name", e.K8sNodeName).Error("could not get node information")
+		return
+	}
+
+	var ok bool
+	if e.hostName, ok = nodeLabels[mappings.KUBERNETES_NODE_LABEL_HOST_NAME]; !ok {
+		fields := logrus.Fields{"k8s.node.name": e.K8sNodeName, "label": mappings.KUBERNETES_NODE_LABEL_HOST_NAME}
+		logrus.WithFields(fields).Warn("could not find host name label")
+	}
+
+	if e.hostType, ok = nodeLabels[mappings.KUBERNETES_NODE_LABEL_HOST_TYPE]; !ok {
+		fields := logrus.Fields{"k8s.node.name": e.K8sNodeName, "label": mappings.KUBERNETES_NODE_LABEL_HOST_TYPE}
+		logrus.WithFields(fields).Warn("could not find host type label")
+	}
+
+	if e.cloudAvailabilityZoneID, ok = nodeLabels[mappings.KUBERNETES_NODE_LABEL_CLOUD_AZ_ID]; !ok {
+		fields := logrus.Fields{"k8s.node.name": e.K8sNodeName, "label": mappings.KUBERNETES_NODE_LABEL_CLOUD_AZ_ID}
+		logrus.WithFields(fields).Warn("could not find cloud availability zone id label")
+	}
+
+	if e.cloudAvailabilityZoneName, ok = nodeLabels[mappings.KUBERNETES_NODE_LABEL_CLOUD_AZ_NAME]; !ok {
+		fields := logrus.Fields{"k8s.node.name": e.K8sNodeName, "label": mappings.KUBERNETES_NODE_LABEL_CLOUD_AZ_NAME}
+		logrus.WithFields(fields).Warn("could not find cloud availability zone name label")
+	}
 }
 
 var _ enricher.IEnricher = (*Enricher)(nil)
@@ -68,14 +109,18 @@ func (e *Enricher) EnrichRecord(r map[interface{}]interface{}, t time.Time) map[
 
 	// Add static attributes
 	r[mappings.RESOURCE_FIELD_NAME] = map[interface{}]interface{}{
-		mappings.RESOURCE_ACCOUNT_ID:             e.CloudAccountId,
-		mappings.RESOURCE_ACCOUNT_NAME:           e.CloudAccountName,
-		mappings.RESOURCE_ACCOUNT_GROUP_FUNCTION: e.CloudAccountGroupFunction,
-		mappings.RESOURCE_PARTITION:              e.CloudPartition,
-		mappings.RESOURCE_REGION:                 e.CloudRegion,
-		mappings.RESOURCE_ORGANIZATION:           e.Organization,
-		mappings.RESOURCE_PLATFORM:               e.CloudPlatform,
-		mappings.RESOURCE_PROVIDER:               e.CloudProvider,
+		mappings.RESOURCE_ACCOUNT_ID:                   e.CloudAccountID,
+		mappings.RESOURCE_ACCOUNT_NAME:                 e.CloudAccountName,
+		mappings.RESOURCE_ACCOUNT_GROUP_FUNCTION:       e.CloudAccountGroupFunction,
+		mappings.RESOURCE_PARTITION:                    e.CloudPartition,
+		mappings.RESOURCE_REGION:                       e.CloudRegion,
+		mappings.RESOURCE_ORGANIZATION:                 e.Organization,
+		mappings.RESOURCE_PLATFORM:                     e.CloudPlatform,
+		mappings.RESOURCE_PROVIDER:                     e.CloudProvider,
+		mappings.RESOURCE_HOST_NAME:                    e.hostName,
+		mappings.RESOURCE_HOST_TYPE:                    e.hostType,
+		mappings.RESOURCE_CLOUD_AVAILABILITY_ZONE_ID:   e.cloudAvailabilityZoneID,
+		mappings.RESOURCE_CLOUD_AVAILABILITY_ZONE_NAME: e.cloudAvailabilityZoneName,
 	}
 	r[mappings.OBSERVED_TIMESTAMP] = t.UnixMilli()
 
@@ -106,7 +151,7 @@ func (e *Enricher) EnrichRecord(r map[interface{}]interface{}, t time.Time) map[
 	return r
 }
 
-func (e Enricher) inferType(record map[interface{}]interface{}) LogType {
+func (e *Enricher) inferType(record map[interface{}]interface{}) LogType {
 	_, hasApplicationLog := record[mappings.LOG_FIELD_NAME]
 	_, hasHostMsgOk := record[mappings.MESSAGE_FIELD_NAME]
 	_, hostTransportOk := record[mappings.TRANSPORT_FIELD_NAME]
