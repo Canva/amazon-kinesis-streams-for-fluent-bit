@@ -7,6 +7,16 @@ import (
 	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher"
 	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher/mappings"
 	"github.com/sirupsen/logrus"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
+)
+
+var (
+	_ metav1.GetOptions
+	_ kubernetes.Interface
+	_ rest.Config
 )
 
 type LogType int

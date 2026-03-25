@@ -6,6 +6,15 @@ import (
 
 	"github.com/canva/amazon-kinesis-streams-for-fluent-bit/enricher/mappings"
 	"github.com/stretchr/testify/assert"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes/fake"
+)
+
+var (
+	_ corev1.Node
+	_ metav1.GetOptions
+	_ fake.Clientset
 )
 
 func Test_NewEnricher(t *testing.T) {
