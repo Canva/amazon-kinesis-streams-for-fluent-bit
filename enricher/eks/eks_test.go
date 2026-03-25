@@ -11,12 +11,6 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 )
 
-var (
-	_ corev1.Node
-	_ metav1.GetOptions
-	_ fake.Clientset
-)
-
 func Test_NewEnricher(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		envs := map[string]string{
@@ -48,6 +42,32 @@ func Test_NewEnricher(t *testing.T) {
 		assert.Nil(t, enricher)
 		assert.Error(t, err)
 	})
+}
+
+func Test_PopulateNodeLabels(t *testing.T) {
+	clientset := fake.NewSimpleClientset(
+		&corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Labels: map[string]string{
+					mappings.KUBERNETES_NODE_LABEL_HOST_NAME:     DummyHostName,
+					mappings.KUBERNETES_NODE_LABEL_HOST_TYPE:     DummyHostType,
+					mappings.KUBERNETES_NODE_LABEL_CLOUD_AZ_ID:   DummyCloudAvailabilityZoneID,
+					mappings.KUBERNETES_NODE_LABEL_CLOUD_AZ_NAME: DummyCloudAvailabilityZoneName,
+				},
+			},
+		},
+	)
+
+	wantedEnricher := &Enricher{
+		hostName:                  DummyHostName,
+		hostType:                  DummyHostType,
+		cloudAvailabilityZoneID:   DummyCloudAvailabilityZoneID,
+		cloudAvailabilityZoneName: DummyCloudAvailabilityZoneName,
+	}
+
+	enricher := &Enricher{}
+	enricher.populateNodeLabels(clientset)
+	assert.Equal(t, enricher, wantedEnricher)
 }
 
 func Test_EnrichRecord(t *testing.T) {

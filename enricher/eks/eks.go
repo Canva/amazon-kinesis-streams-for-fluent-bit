@@ -44,6 +44,22 @@ type Enricher struct {
 	cloudAvailabilityZoneName string
 }
 
+func kubeClientset() (*kubernetes.Clientset, bool) {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		logrus.WithError(err).Error("could not get kube cluster config")
+		return nil, false
+	}
+
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		logrus.WithError(err).WithField("config", config.String()).Error("could not instantiate kubernetes clientset")
+		return nil, false
+	}
+
+	return clientset, true
+}
+
 // NewEnricher returns a enricher with env vars being parsed.
 // These env vars are derived from mappings.go.
 func NewEnricher(cfgs ...EnricherConfiguration) (*Enricher, error) {
@@ -60,23 +76,13 @@ func NewEnricher(cfgs ...EnricherConfiguration) (*Enricher, error) {
 		}
 	}
 
-	enricher.populateNodeLabels()
+	if clientset, ok := kubeClientset(); ok {
+		enricher.populateNodeLabels(clientset)
+	}
 	return enricher, nil
 }
 
-func (e *Enricher) populateNodeLabels() {
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		logrus.WithError(err).Error("could not get kube cluster config")
-		return
-	}
-
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		logrus.WithError(err).WithField("config", config.String()).Error("could not instantiate kubernetes clientset")
-		return
-	}
-
+func (e *Enricher) populateNodeLabels(clientset kubernetes.Interface) {
 	node, err := clientset.CoreV1().Nodes().Get(context.Background(), e.K8sNodeName, metav1.GetOptions{})
 	if err != nil {
 		logrus.WithError(err).WithField("k8s.node.name", e.K8sNodeName).Error("could not get node information")
