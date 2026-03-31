@@ -48,6 +48,7 @@ func Test_PopulateNodeLabels(t *testing.T) {
 	clientset := fake.NewSimpleClientset(
 		&corev1.Node{
 			ObjectMeta: metav1.ObjectMeta{
+				Name: DummyNodeName,
 				Labels: map[string]string{
 					mappings.KUBERNETES_NODE_LABEL_HOST_NAME:     DummyHostName,
 					mappings.KUBERNETES_NODE_LABEL_HOST_TYPE:     DummyHostType,
@@ -59,13 +60,14 @@ func Test_PopulateNodeLabels(t *testing.T) {
 	)
 
 	wantedEnricher := &Enricher{
+		K8sNodeName:               DummyNodeName,
 		hostName:                  DummyHostName,
 		hostType:                  DummyHostType,
 		cloudAvailabilityZoneID:   DummyCloudAvailabilityZoneID,
 		cloudAvailabilityZoneName: DummyCloudAvailabilityZoneName,
 	}
 
-	enricher := &Enricher{}
+	enricher := &Enricher{K8sNodeName: DummyNodeName}
 	enricher.populateNodeLabels(clientset)
 	assert.Equal(t, enricher, wantedEnricher)
 }
