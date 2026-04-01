@@ -11,16 +11,10 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 )
 
-var (
-	_ corev1.Node
-	_ metav1.GetOptions
-	_ fake.Clientset
-)
-
 func Test_NewEnricher(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		envs := map[string]string{
-			mappings.ENV_ACCOUNT_ID:             DummyAccountId,
+			mappings.ENV_ACCOUNT_ID:             DummyAccountID,
 			mappings.ENV_ACCOUNT_NAME:           DummyAccountName,
 			mappings.ENV_REGION:                 DummyRegion,
 			mappings.ENV_ACCOUNT_GROUP_FUNCTION: DummyAccountGroupFunction,
@@ -50,6 +44,34 @@ func Test_NewEnricher(t *testing.T) {
 	})
 }
 
+func Test_PopulateNodeLabels(t *testing.T) {
+	clientset := fake.NewSimpleClientset(
+		&corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: DummyNodeName,
+				Labels: map[string]string{
+					mappings.KUBERNETES_NODE_LABEL_HOST_NAME:     DummyHostName,
+					mappings.KUBERNETES_NODE_LABEL_HOST_TYPE:     DummyHostType,
+					mappings.KUBERNETES_NODE_LABEL_CLOUD_AZ_ID:   DummyCloudAvailabilityZoneID,
+					mappings.KUBERNETES_NODE_LABEL_CLOUD_AZ_NAME: DummyCloudAvailabilityZoneName,
+				},
+			},
+		},
+	)
+
+	wantedEnricher := &Enricher{
+		K8sNodeName:               DummyNodeName,
+		hostName:                  DummyHostName,
+		hostType:                  DummyHostType,
+		cloudAvailabilityZoneID:   DummyCloudAvailabilityZoneID,
+		cloudAvailabilityZoneName: DummyCloudAvailabilityZoneName,
+	}
+
+	enricher := &Enricher{K8sNodeName: DummyNodeName}
+	enricher.populateNodeLabels(clientset)
+	assert.Equal(t, enricher, wantedEnricher)
+}
+
 func Test_EnrichRecord(t *testing.T) {
 	dummyLog := "hello world"
 	defaultInputWithLog := map[interface{}]interface{}{
@@ -64,7 +86,7 @@ func Test_EnrichRecord(t *testing.T) {
 	}
 
 	defaultEnricher := Enricher{
-		CloudAccountId:            DummyAccountId,
+		CloudAccountID:            DummyAccountID,
 		CloudAccountName:          DummyAccountName,
 		CloudRegion:               DummyRegion,
 		CloudPartition:            DummyPartition,
@@ -74,19 +96,27 @@ func Test_EnrichRecord(t *testing.T) {
 		CloudProvider:             DummyProvider,
 		CloudPlatform:             DummyProvider,
 		Organization:              DummyOrganization,
+		hostName:                  DummyHostName,
+		hostType:                  DummyHostType,
+		cloudAvailabilityZoneID:   DummyCloudAvailabilityZoneID,
+		cloudAvailabilityZoneName: DummyCloudAvailabilityZoneName,
 	}
 
 	defaultExpectedWithLog := map[interface{}]interface{}{
 		mappings.LOG_FIELD_NAME: dummyLog,
 		mappings.RESOURCE_FIELD_NAME: map[interface{}]interface{}{
-			mappings.RESOURCE_ACCOUNT_ID:             defaultEnricher.CloudAccountId,
-			mappings.RESOURCE_ACCOUNT_NAME:           defaultEnricher.CloudAccountName,
-			mappings.RESOURCE_REGION:                 defaultEnricher.CloudRegion,
-			mappings.RESOURCE_PARTITION:              defaultEnricher.CloudPartition,
-			mappings.RESOURCE_ACCOUNT_GROUP_FUNCTION: defaultEnricher.CloudAccountGroupFunction,
-			mappings.RESOURCE_ORGANIZATION:           defaultEnricher.Organization,
-			mappings.RESOURCE_PLATFORM:               defaultEnricher.CloudPlatform,
-			mappings.RESOURCE_PROVIDER:               defaultEnricher.CloudProvider,
+			mappings.RESOURCE_ACCOUNT_ID:                   defaultEnricher.CloudAccountID,
+			mappings.RESOURCE_ACCOUNT_NAME:                 defaultEnricher.CloudAccountName,
+			mappings.RESOURCE_REGION:                       defaultEnricher.CloudRegion,
+			mappings.RESOURCE_PARTITION:                    defaultEnricher.CloudPartition,
+			mappings.RESOURCE_ACCOUNT_GROUP_FUNCTION:       defaultEnricher.CloudAccountGroupFunction,
+			mappings.RESOURCE_ORGANIZATION:                 defaultEnricher.Organization,
+			mappings.RESOURCE_PLATFORM:                     defaultEnricher.CloudPlatform,
+			mappings.RESOURCE_PROVIDER:                     defaultEnricher.CloudProvider,
+			mappings.RESOURCE_HOST_NAME:                    defaultEnricher.hostName,
+			mappings.RESOURCE_HOST_TYPE:                    defaultEnricher.hostType,
+			mappings.RESOURCE_CLOUD_AVAILABILITY_ZONE_ID:   defaultEnricher.cloudAvailabilityZoneID,
+			mappings.RESOURCE_CLOUD_AVAILABILITY_ZONE_NAME: defaultEnricher.cloudAvailabilityZoneName,
 		},
 		mappings.KUBERNETES_RESOURCE_FIELD_NAME: map[interface{}]interface{}{
 			"key": "value",
@@ -206,15 +236,19 @@ func Test_EnrichRecord(t *testing.T) {
 					mappings.KUBERNETES_RESOURCE_CLUSTER_NAME: defaultEnricher.K8sClusterName,
 				}
 				expected[mappings.RESOURCE_FIELD_NAME] = map[interface{}]interface{}{
-					mappings.RESOURCE_ACCOUNT_ID:             defaultEnricher.CloudAccountId,
-					mappings.RESOURCE_ACCOUNT_NAME:           defaultEnricher.CloudAccountName,
-					mappings.RESOURCE_REGION:                 defaultEnricher.CloudRegion,
-					mappings.RESOURCE_PARTITION:              defaultEnricher.CloudPartition,
-					mappings.RESOURCE_ACCOUNT_GROUP_FUNCTION: defaultEnricher.CloudAccountGroupFunction,
-					mappings.RESOURCE_ORGANIZATION:           defaultEnricher.Organization,
-					mappings.RESOURCE_PLATFORM:               defaultEnricher.CloudPlatform,
-					mappings.RESOURCE_PROVIDER:               defaultEnricher.CloudProvider,
-					mappings.RESOURCE_SERVICE_NAME:           mappings.EKS_HOST_LOG_SERVICE_NAME,
+					mappings.RESOURCE_ACCOUNT_ID:                   defaultEnricher.CloudAccountID,
+					mappings.RESOURCE_ACCOUNT_NAME:                 defaultEnricher.CloudAccountName,
+					mappings.RESOURCE_REGION:                       defaultEnricher.CloudRegion,
+					mappings.RESOURCE_PARTITION:                    defaultEnricher.CloudPartition,
+					mappings.RESOURCE_ACCOUNT_GROUP_FUNCTION:       defaultEnricher.CloudAccountGroupFunction,
+					mappings.RESOURCE_ORGANIZATION:                 defaultEnricher.Organization,
+					mappings.RESOURCE_PLATFORM:                     defaultEnricher.CloudPlatform,
+					mappings.RESOURCE_PROVIDER:                     defaultEnricher.CloudProvider,
+					mappings.RESOURCE_SERVICE_NAME:                 mappings.EKS_HOST_LOG_SERVICE_NAME,
+					mappings.RESOURCE_HOST_NAME:                    defaultEnricher.hostName,
+					mappings.RESOURCE_HOST_TYPE:                    defaultEnricher.hostType,
+					mappings.RESOURCE_CLOUD_AVAILABILITY_ZONE_ID:   defaultEnricher.cloudAvailabilityZoneID,
+					mappings.RESOURCE_CLOUD_AVAILABILITY_ZONE_NAME: defaultEnricher.cloudAvailabilityZoneName,
 				}
 				return expected
 			}(),
@@ -230,17 +264,21 @@ func Test_EnrichRecord(t *testing.T) {
 }
 
 var (
-	DummyAccountId            = "123123123"
-	DummyAccountName          = "Account Name"
-	DummyRegion               = "ap-southeast-1"
-	DummyAccountGroupFunction = "general"
-	DummyClusterName          = "Cluster Name"
-	DummyNodeName             = "node_name"
-	DummyPartition            = "aws"
-	DummyOrganization         = "canva"
-	DummyProvider             = "aws"
-	DummyPlatform             = "eks"
-	DummyTime                 = time.Date(2009, time.November, 10, 23, 7, 5, 432000000, time.UTC)
+	DummyAccountID                 = "123123123"
+	DummyAccountName               = "Account Name"
+	DummyRegion                    = "ap-southeast-1"
+	DummyAccountGroupFunction      = "general"
+	DummyClusterName               = "Cluster Name"
+	DummyNodeName                  = "node_name"
+	DummyPartition                 = "aws"
+	DummyOrganization              = "canva"
+	DummyProvider                  = "aws"
+	DummyPlatform                  = "eks"
+	DummyTime                      = time.Date(2009, time.November, 10, 23, 7, 5, 432000000, time.UTC)
+	DummyHostName                  = "public-otel-gateway-7b88c59dcf-26lfq"
+	DummyHostType                  = "c7i.4xlarge"
+	DummyCloudAvailabilityZoneID   = "apse2-az1"
+	DummyCloudAvailabilityZoneName = "ap-southeast-2a"
 )
 
 var (
